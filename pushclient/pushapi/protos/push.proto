@@ -1,0 +1,57 @@
+syntax = "proto3";
+package client;
+
+option go_package = "pushclient/pushapi";
+
+enum ErrCodes {
+  Unexpected = 0;
+  InvalidSignature = 1;
+  InvalidTopicSignature = 2;
+  ErrorOffset = 1200;
+}
+
+
+service Push {
+  rpc SetToken(SetTokenRequest) returns (Ok);
+  rpc SubscribeAll(SubscribeAllRequest) returns (Ok);
+  rpc Notify(NotifyRequest) returns (Ok);
+}
+
+enum Platform {
+  IOS = 0;
+  Android = 1;
+}
+
+message Topics {
+  repeated Topic topics = 1;
+}
+
+message Topic {
+  bytes spaceKey = 1;
+  string topic = 2;
+  bytes signature = 3;
+}
+
+message SetTokenRequest {
+  string accountId = 1;
+  Platform platform = 2;
+  string token = 3;
+  bytes signature = 4;
+}
+
+message SubscribeAllRequest {
+  string accountId = 1;
+  // proto Topics
+  bytes payload = 2;
+  bytes signature = 3;
+}
+
+message NotifyRequest {
+  string accountId = 1;
+  // proto Topics
+  bytes payload = 2;
+  bytes signature = 3;
+}
+
+message Ok {}
+
