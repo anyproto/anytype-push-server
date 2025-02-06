@@ -10,20 +10,8 @@ mongo:
   database: push_test
 networkStorePath: .
 networkUpdateIntervalSec: 300
-publish:
-  uploadUrlPrefix: "http://127.0.0.1:8383/api/upload"
-  httpApiAddr: ":8383"
-  cleanupOn: true
-gateway:
-  addr: ":8380"
-  publishFilesUrl: "https://anytype-gobackend-test.s3.eu-central-1.amazonaws.com"
-  staticFilesUrl: "http://127.0.0.1:8380/static"
-  serveStatic: true
-  analyticsCode: >
-    <script>console.log("sending dummy analytics from config...")</script>
-  analyticsCodeMembers: >
-    <script>console.log("sending dummy analytics from config (members)...")</script>
-
+fcm:
+  credentialsFile: /home/che/anytype-android-debug-firebase-adminsdk-4jaud-c2724bfb8a.json
 yamux:
   listenAddrs:
     - 0.0.0.0:4940

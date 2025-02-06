@@ -14,6 +14,7 @@ import (
 
 	"github.com/anyproto/anytype-push-server/db"
 	"github.com/anyproto/anytype-push-server/redisprovider"
+	"github.com/anyproto/anytype-push-server/sender/provider/fcm"
 )
 
 const CName = "config"
@@ -40,6 +41,7 @@ type Config struct {
 	Network                  nodeconf.Configuration `yaml:"network"`
 	NetworkStorePath         string                 `yaml:"networkStorePath"`
 	NetworkUpdateIntervalSec int                    `yaml:"networkUpdateIntervalSec"`
+	FCM                      fcm.Config             `yaml:"fcm"`
 }
 
 func (c *Config) Init(a *app.App) (err error) {
@@ -88,4 +90,8 @@ func (c *Config) GetSecureService() secureservice.Config {
 
 func (c *Config) GetRedis() redisprovider.Config {
 	return c.Redis
+}
+
+func (c *Config) GetFCM() fcm.Config {
+	return c.FCM
 }

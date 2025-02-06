@@ -1,6 +1,7 @@
 package domain
 
 type Message struct {
-	Tokens   []string `bson:"tokens"`
+	Tokens   []string
+	Data     map[string]string
 	Platform Platform
 }

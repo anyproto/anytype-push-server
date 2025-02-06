@@ -2,6 +2,7 @@ package sender
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -81,6 +82,11 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 	if len(tokens) == 0 {
 		return
 	}
+
+	data := make(map[string]string)
+	topicsJSON, _ := json.Marshal(message.Topics)
+	data["x-anytype-topics"] = string(topicsJSON)
+
 	var byProvider = make(map[domain.Platform]*domain.Message)
 
 	for _, token := range tokens {
@@ -89,6 +95,7 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 			msg = &domain.Message{
 				Platform: token.Platform,
 				Tokens:   []string{token.Id},
+				Data:     data,
 			}
 		} else {
 			msg.Tokens = append(msg.Tokens, token.Id)
