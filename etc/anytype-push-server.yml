@@ -11,7 +11,9 @@ mongo:
 networkStorePath: .
 networkUpdateIntervalSec: 300
 fcm:
-  credentialsFile: /home/che/anytype-android-debug-firebase-adminsdk-4jaud-c2724bfb8a.json
+  credentialsFile:
+    android: /home/che/anytype-android-debug-firebase-adminsdk-4jaud-c2724bfb8a.json
+    ios: /home/che/anytype-apps-firebase-adminsdk-fbsvc-b046e4ac32.json
 yamux:
   listenAddrs:
     - 0.0.0.0:4940

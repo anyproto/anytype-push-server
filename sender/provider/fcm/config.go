@@ -5,5 +5,8 @@ type configSource interface {
 }
 
 type Config struct {
-	CredentialsFile string `yaml:"credentialsFile"`
+	CredentialsFile struct {
+		IOS     string `yaml:"ios"`
+		Android string `yaml:"android"`
+	} `yaml:"credentialsFile"`
 }

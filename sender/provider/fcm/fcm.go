@@ -23,27 +23,27 @@ func New() FCM {
 }
 
 type FCM interface {
-	sender.Provider
 	app.Component
 }
 
 type fcm struct {
-	client *messaging.Client
 }
 
 func (f *fcm) Init(a *app.App) (err error) {
 	s := a.MustComponent(sender.CName).(sender.Sender)
-	s.RegisterProvider(domain.PlatformIOS, f)
-	s.RegisterProvider(domain.PlatformAndroid, f)
 	conf := a.MustComponent("config").(configSource).GetFCM()
-	opt := option.WithCredentialsFile(conf.CredentialsFile)
-	fcmApp, err := firebase.NewApp(context.Background(), nil, opt)
+
+	android, err := newSender(conf.CredentialsFile.Android)
 	if err != nil {
 		return err
 	}
-	if f.client, err = fcmApp.Messaging(context.Background()); err != nil {
+	s.RegisterProvider(domain.PlatformAndroid, android)
+
+	ios, err := newSender(conf.CredentialsFile.IOS)
+	if err != nil {
 		return err
 	}
+	s.RegisterProvider(domain.PlatformIOS, ios)
 	return
 }
 
@@ -51,9 +51,26 @@ func (f *fcm) Name() (name string) {
 	return CName
 }
 
+func newSender(credentialsFile string) (sender.Provider, error) {
+	opt := option.WithCredentialsFile(credentialsFile)
+	fcmApp, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		return nil, err
+	}
+	client, err := fcmApp.Messaging(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &fcmSender{client: client}, nil
+}
+
+type fcmSender struct {
+	client *messaging.Client
+}
+
 const batchSize = 500
 
-func (f *fcm) SendMessage(ctx context.Context, message domain.Message, onInvalid func(token string)) (err error) {
+func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onInvalid func(token string)) (err error) {
 	nextBatch := message.Tokens
 	for len(nextBatch) > 0 {
 		if len(nextBatch) > batchSize {
