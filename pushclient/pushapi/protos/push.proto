@@ -13,6 +13,7 @@ enum ErrCodes {
 
 service Push {
   rpc SetToken(SetTokenRequest) returns (Ok);
+  rpc CreateSpace(CreateSpaceRequest) returns (Ok);
   rpc SubscribeAll(SubscribeAllRequest) returns (Ok);
   rpc Notify(NotifyRequest) returns (Ok);
 }
@@ -39,16 +40,35 @@ message SetTokenRequest {
   bytes signature = 4;
 }
 
+message CreateSpaceRequest {
+  bytes spaceKey = 1;
+  // sign of spaceKey with account key
+  bytes spaceKeySignature = 2;
+  // sign of accountId with space key
+  bytes accountSignature = 3;
+}
+
 message SubscribeAllRequest {
   string accountId = 1;
-  // proto Topics
-  bytes payload = 2;
+  // proto encoded Topics
+  bytes topics = 2;
   bytes signature = 3;
 }
 
 message NotifyRequest {
   string accountId = 1;
-  // proto Topics
+  // proto encoded Notification
+  bytes notification = 2;
+  bytes signature = 3;
+}
+
+message Notification {
+  Topics topics = 1;
+  Message message = 2;
+}
+
+message Message {
+  string keyId = 1;
   bytes payload = 2;
   bytes signature = 3;
 }
