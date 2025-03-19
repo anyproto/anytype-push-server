@@ -14,6 +14,10 @@ enum ErrCodes {
 service Push {
   rpc SetToken(SetTokenRequest) returns (Ok);
   rpc CreateSpace(CreateSpaceRequest) returns (Ok);
+  rpc RemoveSpace(RemoveSpaceRequest) returns (Ok);
+  rpc Subscriptions(SubscriptionsRequest) returns (SubscriptionsResponse);
+  rpc Subscribe(SubscribeRequest) returns (Ok);
+  rpc Unsubscribe(UnsubscribeRequest) returns (Ok);
   rpc SubscribeAll(SubscribeAllRequest) returns (Ok);
   rpc Notify(NotifyRequest) returns (Ok);
 }
@@ -30,39 +34,49 @@ message Topics {
 message Topic {
   bytes spaceKey = 1;
   string topic = 2;
+  // spake private key
   bytes signature = 3;
 }
 
 message SetTokenRequest {
-  string accountId = 1;
-  Platform platform = 2;
-  string token = 3;
-  bytes signature = 4;
+  Platform platform = 1;
+  string token = 2;
+  // account private key
+  bytes signature = 3;
 }
 
 message CreateSpaceRequest {
   bytes spaceKey = 1;
-  // sign of spaceKey with account key
-  bytes spaceKeySignature = 2;
   // sign of accountId with space key
-  bytes accountSignature = 3;
+  bytes accountSignature = 2;
 }
 
+message RemoveSpaceRequest {
+  bytes spaceKey = 1;
+  // sign of accountId with space key
+  bytes accountSignature = 2;
+}
+
+message SubscriptionsRequest {}
+
+message SubscriptionsResponse {
+  Topics topics = 1;
+}
+
+message SubscribeRequest {
+  Topics topics = 1;
+}
+
+message UnsubscribeRequest {
+  Topics topics = 1;
+}
+
+
 message SubscribeAllRequest {
-  string accountId = 1;
-  // proto encoded Topics
-  bytes topics = 2;
-  bytes signature = 3;
+  Topics topics = 1;
 }
 
 message NotifyRequest {
-  string accountId = 1;
-  // proto encoded Notification
-  bytes notification = 2;
-  bytes signature = 3;
-}
-
-message Notification {
   Topics topics = 1;
   Message message = 2;
 }
