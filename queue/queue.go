@@ -27,7 +27,10 @@ func New() Queue {
 }
 
 type Message struct {
-	IgnoreAccountId string         `json:"ignoreAccountId"`
+	IgnoreAccountId string `json:"ignoreAccountId"`
+	KeyId           string
+	Payload         []byte
+	Signature       []byte
 	Topics          []domain.Topic `json:"topics"`
 }
 

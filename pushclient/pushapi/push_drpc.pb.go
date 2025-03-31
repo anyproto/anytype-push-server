@@ -62,7 +62,7 @@ func (c *drpcPushClient) DRPCConn() drpc.Conn { return c.cc }
 
 func (c *drpcPushClient) SetToken(ctx context.Context, in *SetTokenRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/SetToken", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/SetToken", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *drpcPushClient) SetToken(ctx context.Context, in *SetTokenRequest) (*Ok
 
 func (c *drpcPushClient) CreateSpace(ctx context.Context, in *CreateSpaceRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/CreateSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/CreateSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *drpcPushClient) CreateSpace(ctx context.Context, in *CreateSpaceRequest
 
 func (c *drpcPushClient) RemoveSpace(ctx context.Context, in *RemoveSpaceRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/RemoveSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/RemoveSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *drpcPushClient) RemoveSpace(ctx context.Context, in *RemoveSpaceRequest
 
 func (c *drpcPushClient) Subscriptions(ctx context.Context, in *SubscriptionsRequest) (*SubscriptionsResponse, error) {
 	out := new(SubscriptionsResponse)
-	err := c.cc.Invoke(ctx, "/client.Push/Subscriptions", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/Subscriptions", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *drpcPushClient) Subscriptions(ctx context.Context, in *SubscriptionsReq
 
 func (c *drpcPushClient) Subscribe(ctx context.Context, in *SubscribeRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/Subscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/Subscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *drpcPushClient) Subscribe(ctx context.Context, in *SubscribeRequest) (*
 
 func (c *drpcPushClient) Unsubscribe(ctx context.Context, in *UnsubscribeRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/Unsubscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/Unsubscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (c *drpcPushClient) Unsubscribe(ctx context.Context, in *UnsubscribeRequest
 
 func (c *drpcPushClient) SubscribeAll(ctx context.Context, in *SubscribeAllRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/SubscribeAll", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/SubscribeAll", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (c *drpcPushClient) SubscribeAll(ctx context.Context, in *SubscribeAllReque
 
 func (c *drpcPushClient) Notify(ctx context.Context, in *NotifyRequest) (*Ok, error) {
 	out := new(Ok)
-	err := c.cc.Invoke(ctx, "/client.Push/Notify", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/Notify", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (DRPCPushDescription) NumMethods() int { return 8 }
 func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, interface{}, bool) {
 	switch n {
 	case 0:
-		return "/client.Push/SetToken", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/SetToken", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					SetToken(
@@ -193,7 +193,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.SetToken, true
 	case 1:
-		return "/client.Push/CreateSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/CreateSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					CreateSpace(
@@ -202,7 +202,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.CreateSpace, true
 	case 2:
-		return "/client.Push/RemoveSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/RemoveSpace", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					RemoveSpace(
@@ -211,7 +211,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.RemoveSpace, true
 	case 3:
-		return "/client.Push/Subscriptions", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/Subscriptions", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					Subscriptions(
@@ -220,7 +220,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.Subscriptions, true
 	case 4:
-		return "/client.Push/Subscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/Subscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					Subscribe(
@@ -229,7 +229,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.Subscribe, true
 	case 5:
-		return "/client.Push/Unsubscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/Unsubscribe", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					Unsubscribe(
@@ -238,7 +238,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.Unsubscribe, true
 	case 6:
-		return "/client.Push/SubscribeAll", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/SubscribeAll", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					SubscribeAll(
@@ -247,7 +247,7 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 					)
 			}, DRPCPushServer.SubscribeAll, true
 	case 7:
-		return "/client.Push/Notify", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+		return "/pushproto.Push/Notify", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
 			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
 				return srv.(DRPCPushServer).
 					Notify(

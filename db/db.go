@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 )
 
-const CName = "publish.db"
+const CName = "push.db"
 
 var log = logger.NewNamed(CName)
 

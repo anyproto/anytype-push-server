@@ -10,6 +10,7 @@ import (
 	"github.com/anyproto/any-sync/app"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/anyproto/anytype-push-server/db"
 	"github.com/anyproto/anytype-push-server/domain"
@@ -58,7 +59,22 @@ func (t *tokenRepo) AddToken(ctx context.Context, token domain.Token) (err error
 	now := time.Now().Unix()
 	token.Created = now
 	token.Updated = now
-	_, err = t.coll.InsertOne(ctx, token)
+	opts := options.Update().SetUpsert(true)
+	_, err = t.coll.UpdateByID(
+		ctx,
+		token.Id,
+		bson.D{
+			{"$set", bson.D{
+				{"platform", token.Platform},
+				{"updated", time.Now().Unix()},
+				{"peerId", token.PeerId},
+				{"accountId", token.AccountId},
+				{"status", token.Status},
+			}},
+			{"$setOnInsert", bson.D{{"created", time.Now().Unix()}}},
+		},
+		opts,
+	)
 	if mongo.IsDuplicateKeyError(err) {
 		return ErrTokenExists
 	}
@@ -78,7 +94,7 @@ func (t *tokenRepo) UpdateTokenStatus(ctx context.Context, tokenId string, statu
 
 func (t *tokenRepo) GetActiveTokensByAccountIds(ctx context.Context, accountIds []string) (tokens []domain.Token, err error) {
 	cur, err := t.coll.Find(ctx, bson.D{
-		{"accountIds", bson.D{{"$in", accountIds}}},
+		{"accountId", bson.D{{"$in", accountIds}}},
 		{"status", domain.TokenStatusValid},
 	})
 	if err != nil {

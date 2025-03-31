@@ -1,5 +1,5 @@
 syntax = "proto3";
-package client;
+package pushproto;
 
 option go_package = "pushclient/pushapi";
 
@@ -7,6 +7,8 @@ enum ErrCodes {
   Unexpected = 0;
   InvalidSignature = 1;
   InvalidTopicSignature = 2;
+  SpaceExists = 3;
+  NoValidTopics = 4;
   ErrorOffset = 1200;
 }
 
@@ -34,26 +36,24 @@ message Topics {
 message Topic {
   bytes spaceKey = 1;
   string topic = 2;
-  // spake private key
+  // space private key
   bytes signature = 3;
 }
 
 message SetTokenRequest {
   Platform platform = 1;
   string token = 2;
-  // account private key
-  bytes signature = 3;
 }
 
 message CreateSpaceRequest {
   bytes spaceKey = 1;
-  // sign of accountId with space key
+  // spacePrivateKey.Sign(identity)
   bytes accountSignature = 2;
 }
 
 message RemoveSpaceRequest {
   bytes spaceKey = 1;
-  // sign of accountId with space key
+  // spacePrivateKey.Sign(identity)
   bytes accountSignature = 2;
 }
 
