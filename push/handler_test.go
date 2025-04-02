@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/anyproto/any-sync/app"
+	"github.com/anyproto/any-sync/metric"
 	"github.com/anyproto/any-sync/net/peer"
 	"github.com/anyproto/any-sync/net/rpc/rpctest"
 	"github.com/anyproto/any-sync/util/crypto"
@@ -22,6 +23,8 @@ import (
 	"github.com/anyproto/anytype-push-server/queue/mock_queue"
 	"github.com/anyproto/anytype-push-server/repo/accountrepo"
 	"github.com/anyproto/anytype-push-server/repo/accountrepo/mock_accountrepo"
+	"github.com/anyproto/anytype-push-server/repo/spacerepo"
+	"github.com/anyproto/anytype-push-server/repo/spacerepo/mock_spacerepo"
 	"github.com/anyproto/anytype-push-server/repo/tokenrepo"
 	"github.com/anyproto/anytype-push-server/repo/tokenrepo/mock_tokenrepo"
 )
@@ -33,9 +36,9 @@ func TestHandler_SetToken(t *testing.T) {
 		fx := newFixture(t)
 		acc := newAccount()
 		token := "token"
-		sign, err := acc.Sign([]byte(token))
-		require.NoError(t, err)
 		pCtx := peer.CtxWithPeerId(ctx, "p1")
+		accKey, _ := acc.GetPublic().Marshall()
+		pCtx = peer.CtxWithIdentity(pCtx, accKey)
 
 		fx.tokenRepo.EXPECT().AddToken(pCtx, domain.Token{
 			Id:        token,
@@ -46,30 +49,11 @@ func TestHandler_SetToken(t *testing.T) {
 		}).Return(nil)
 
 		resp, err := fx.handler.SetToken(pCtx, &pushapi.SetTokenRequest{
-			AccountId: acc.GetPublic().Account(),
-			Platform:  pushapi.Platform_Android,
-			Token:     "token",
-			Signature: sign,
+			Platform: pushapi.Platform_Android,
+			Token:    "token",
 		})
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
-	})
-	t.Run("invalid signature", func(t *testing.T) {
-		fx := newFixture(t)
-		acc := newAccount()
-		token := "token"
-		sign, err := acc.Sign([]byte(token + "invalid"))
-		require.NoError(t, err)
-		pCtx := peer.CtxWithPeerId(ctx, "p1")
-
-		resp, err := fx.handler.SetToken(pCtx, &pushapi.SetTokenRequest{
-			AccountId: acc.GetPublic().Account(),
-			Platform:  pushapi.Platform_Android,
-			Token:     "token",
-			Signature: sign,
-		})
-		require.ErrorIs(t, err, pushapi.ErrInvalidSignature)
-		assert.Nil(t, resp)
 	})
 }
 
@@ -84,24 +68,19 @@ func TestHandler_SubscribeAll(t *testing.T) {
 			rawTopics.Topics = append(rawTopics.Topics, rawTopic)
 			topics = append(topics, domain.Topic(base58.Encode(rawTopic.SpaceKey)+"/"+rawTopic.Topic))
 		}
-		rawTopicsData, err := rawTopics.Marshal()
-		require.NoError(t, err)
-
-		signature, err := acc.Sign(rawTopicsData)
-		require.NoError(t, err)
 
 		req := &pushapi.SubscribeAllRequest{
-			AccountId: acc.GetPublic().Account(),
-			Payload:   rawTopicsData,
-			Signature: signature,
+			Topics: rawTopics,
 		}
 
-		fx.accountRepo.EXPECT().SetAccountTopics(ctx, req.AccountId, topics).Return(nil)
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
 
-		resp, err := fx.handler.SubscribeAll(ctx, req)
+		fx.accountRepo.EXPECT().SetAccountTopics(pCtx, acc.GetPublic().Account(), topics).Return(nil)
+
+		resp, err := fx.handler.SubscribeAll(pCtx, req)
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
-		t.Log(topics)
 	})
 }
 
@@ -109,6 +88,7 @@ type fixture struct {
 	*push
 	tokenRepo   *mock_tokenrepo.MockTokenRepo
 	accountRepo *mock_accountrepo.MockAccountRepo
+	spaceRepo   *mock_spacerepo.MockSpaceRepo
 	queue       *mock_queue.MockQueue
 	a           *app.App
 }
@@ -120,6 +100,7 @@ func newFixture(t *testing.T) *fixture {
 		a:           new(app.App),
 		tokenRepo:   mock_tokenrepo.NewMockTokenRepo(ctrl),
 		accountRepo: mock_accountrepo.NewMockAccountRepo(ctrl),
+		spaceRepo:   mock_spacerepo.NewMockSpaceRepo(ctrl),
 		queue:       mock_queue.NewMockQueue(ctrl),
 	}
 	fx.tokenRepo.EXPECT().Name().Return(tokenrepo.CName).AnyTimes()
@@ -130,6 +111,10 @@ func newFixture(t *testing.T) *fixture {
 	fx.accountRepo.EXPECT().Name().Return(accountrepo.CName).AnyTimes()
 	fx.accountRepo.EXPECT().Run(gomock.Any()).AnyTimes()
 	fx.accountRepo.EXPECT().Close(gomock.Any()).AnyTimes()
+	fx.spaceRepo.EXPECT().Init(gomock.Any()).AnyTimes()
+	fx.spaceRepo.EXPECT().Name().Return(spacerepo.CName).AnyTimes()
+	fx.spaceRepo.EXPECT().Run(gomock.Any()).AnyTimes()
+	fx.spaceRepo.EXPECT().Close(gomock.Any()).AnyTimes()
 	fx.queue.EXPECT().Init(gomock.Any()).AnyTimes()
 	fx.queue.EXPECT().Name().Return(queue.CName).AnyTimes()
 	fx.queue.EXPECT().Run(gomock.Any()).AnyTimes()
@@ -137,7 +122,10 @@ func newFixture(t *testing.T) *fixture {
 
 	fx.a.Register(fx.tokenRepo).
 		Register(fx.accountRepo).
+		Register(fx.spaceRepo).
 		Register(fx.queue).
+		Register(metric.New()).
+		Register(&testConfig{}).
 		Register(fx.push).
 		Register(rpctest.NewTestServer())
 	require.NoError(t, fx.a.Start(ctx))
@@ -163,4 +151,18 @@ func newTopic(topic string) *pushapi.Topic {
 		Topic:     topic,
 		Signature: signature,
 	}
+}
+
+type testConfig struct{}
+
+func (t testConfig) Init(a *app.App) (err error) {
+	return
+}
+
+func (t testConfig) Name() (name string) {
+	return "config"
+}
+
+func (t testConfig) GetMetric() metric.Config {
+	return metric.Config{}
 }

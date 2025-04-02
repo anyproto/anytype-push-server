@@ -1,5 +1,5 @@
 syntax = "proto3";
-package client;
+package pushproto;
 
 option go_package = "pushclient/pushapi";
 
@@ -7,12 +7,19 @@ enum ErrCodes {
   Unexpected = 0;
   InvalidSignature = 1;
   InvalidTopicSignature = 2;
+  SpaceExists = 3;
+  NoValidTopics = 4;
   ErrorOffset = 1200;
 }
 
 
 service Push {
   rpc SetToken(SetTokenRequest) returns (Ok);
+  rpc CreateSpace(CreateSpaceRequest) returns (Ok);
+  rpc RemoveSpace(RemoveSpaceRequest) returns (Ok);
+  rpc Subscriptions(SubscriptionsRequest) returns (SubscriptionsResponse);
+  rpc Subscribe(SubscribeRequest) returns (Ok);
+  rpc Unsubscribe(UnsubscribeRequest) returns (Ok);
   rpc SubscribeAll(SubscribeAllRequest) returns (Ok);
   rpc Notify(NotifyRequest) returns (Ok);
 }
@@ -29,26 +36,53 @@ message Topics {
 message Topic {
   bytes spaceKey = 1;
   string topic = 2;
+  // space private key
   bytes signature = 3;
 }
 
 message SetTokenRequest {
-  string accountId = 1;
-  Platform platform = 2;
-  string token = 3;
-  bytes signature = 4;
+  Platform platform = 1;
+  string token = 2;
 }
 
+message CreateSpaceRequest {
+  bytes spaceKey = 1;
+  // spacePrivateKey.Sign(identity)
+  bytes accountSignature = 2;
+}
+
+message RemoveSpaceRequest {
+  bytes spaceKey = 1;
+  // spacePrivateKey.Sign(identity)
+  bytes accountSignature = 2;
+}
+
+message SubscriptionsRequest {}
+
+message SubscriptionsResponse {
+  Topics topics = 1;
+}
+
+message SubscribeRequest {
+  Topics topics = 1;
+}
+
+message UnsubscribeRequest {
+  Topics topics = 1;
+}
+
+
 message SubscribeAllRequest {
-  string accountId = 1;
-  // proto Topics
-  bytes payload = 2;
-  bytes signature = 3;
+  Topics topics = 1;
 }
 
 message NotifyRequest {
-  string accountId = 1;
-  // proto Topics
+  Topics topics = 1;
+  Message message = 2;
+}
+
+message Message {
+  string keyId = 1;
   bytes payload = 2;
   bytes signature = 3;
 }

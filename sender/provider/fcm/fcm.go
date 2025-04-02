@@ -33,13 +33,13 @@ func (f *fcm) Init(a *app.App) (err error) {
 	s := a.MustComponent(sender.CName).(sender.Sender)
 	conf := a.MustComponent("config").(configSource).GetFCM()
 
-	android, err := newSender(conf.CredentialsFile.Android)
+	android, err := newSender(conf, conf.CredentialsFile.Android)
 	if err != nil {
 		return err
 	}
 	s.RegisterProvider(domain.PlatformAndroid, android)
 
-	ios, err := newSender(conf.CredentialsFile.IOS)
+	ios, err := newSender(conf, conf.CredentialsFile.IOS)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (f *fcm) Name() (name string) {
 	return CName
 }
 
-func newSender(credentialsFile string) (sender.Provider, error) {
+func newSender(config Config, credentialsFile string) (sender.Provider, error) {
 	opt := option.WithCredentialsFile(credentialsFile)
 	fcmApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
@@ -61,11 +61,12 @@ func newSender(credentialsFile string) (sender.Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &fcmSender{client: client}, nil
+	return &fcmSender{client: client, config: config}, nil
 }
 
 type fcmSender struct {
 	client *messaging.Client
+	config Config
 }
 
 const batchSize = 500
@@ -81,7 +82,7 @@ func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onI
 			nextBatch = nil
 		}
 		var response *messaging.BatchResponse
-		if response, err = f.client.SendEachForMulticast(ctx, buildFcmMessage(message)); err != nil {
+		if response, err = f.client.SendEachForMulticast(ctx, f.buildFcmMessage(message)); err != nil {
 			return err
 		}
 		for i, resp := range response.Responses {
@@ -101,9 +102,14 @@ func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onI
 	return nil
 }
 
-func buildFcmMessage(message domain.Message) *messaging.MulticastMessage {
+func (f *fcmSender) buildFcmMessage(message domain.Message) *messaging.MulticastMessage {
 	return &messaging.MulticastMessage{
 		Tokens: message.Tokens,
 		Data:   message.Data,
+		Notification: &messaging.Notification{
+			Title:    f.config.DefaultMessage.Title,
+			Body:     f.config.DefaultMessage.Body,
+			ImageURL: f.config.DefaultMessage.ImageUrl,
+		},
 	}
 }

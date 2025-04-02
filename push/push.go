@@ -2,8 +2,11 @@ package push
 
 import (
 	"context"
+	"errors"
+	"slices"
 
 	"github.com/anyproto/any-sync/app"
+	"github.com/anyproto/any-sync/metric"
 	"github.com/anyproto/any-sync/net/peer"
 	"github.com/anyproto/any-sync/net/rpc/server"
 	"github.com/anyproto/any-sync/util/crypto"
@@ -13,6 +16,7 @@ import (
 	"github.com/anyproto/anytype-push-server/pushclient/pushapi"
 	"github.com/anyproto/anytype-push-server/queue"
 	"github.com/anyproto/anytype-push-server/repo/accountrepo"
+	"github.com/anyproto/anytype-push-server/repo/spacerepo"
 	"github.com/anyproto/anytype-push-server/repo/tokenrepo"
 )
 
@@ -29,14 +33,18 @@ type Push interface {
 type push struct {
 	tokenRepo   tokenrepo.TokenRepo
 	accountRepo accountrepo.AccountRepo
+	spaceRepo   spacerepo.SpaceRepo
 	queue       queue.Queue
+	metric      metric.Metric
 	handler     *handler
 }
 
 func (p *push) Init(a *app.App) (err error) {
 	p.tokenRepo = a.MustComponent(tokenrepo.CName).(tokenrepo.TokenRepo)
 	p.accountRepo = a.MustComponent(accountrepo.CName).(accountrepo.AccountRepo)
+	p.spaceRepo = a.MustComponent(spacerepo.CName).(spacerepo.SpaceRepo)
 	p.queue = a.MustComponent(queue.CName).(queue.Queue)
+	p.metric = a.MustComponent(metric.CName).(metric.Metric)
 	p.handler = &handler{p: p}
 	return pushapi.DRPCRegisterPush(a.MustComponent(server.CName).(server.DRPCServer), p.handler)
 }
@@ -46,7 +54,8 @@ func (p *push) Name() (name string) {
 }
 
 func (p *push) AddToken(ctx context.Context, req *pushapi.SetTokenRequest) error {
-	if err := checkSignature(req.AccountId, []byte(req.Token), req.Signature); err != nil {
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
 		return err
 	}
 	peerId, err := peer.CtxPeerId(ctx)
@@ -55,7 +64,7 @@ func (p *push) AddToken(ctx context.Context, req *pushapi.SetTokenRequest) error
 	}
 	return p.tokenRepo.AddToken(ctx, domain.Token{
 		Id:        req.Token,
-		AccountId: req.AccountId,
+		AccountId: accPubKey.Account(),
 		PeerId:    peerId,
 		Platform:  domain.Platform(req.Platform),
 		Status:    domain.TokenStatusValid,
@@ -63,51 +72,129 @@ func (p *push) AddToken(ctx context.Context, req *pushapi.SetTokenRequest) error
 }
 
 func (p *push) SubscribeAll(ctx context.Context, req *pushapi.SubscribeAllRequest) error {
-	if err := checkSignature(req.AccountId, req.Payload, req.Signature); err != nil {
-		return err
-	}
-	var rawTopics = &pushapi.Topics{}
-	if err := rawTopics.Unmarshal(req.Payload); err != nil {
-		return err
-	}
-	topics, err := convertTopics(rawTopics)
+	accPubKey, err := peer.CtxPubKey(ctx)
 	if err != nil {
 		return err
 	}
-	return p.accountRepo.SetAccountTopics(ctx, req.AccountId, topics)
+	topics, err := convertTopics(req.Topics)
+	if err != nil {
+		return err
+	}
+	return p.accountRepo.SetAccountTopics(ctx, accPubKey.Account(), topics)
 }
 
 func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
-	if err := checkSignature(req.AccountId, req.Payload, req.Signature); err != nil {
-		return err
-	}
-	var rawTopics = &pushapi.Topics{}
-	if err := rawTopics.Unmarshal(req.Payload); err != nil {
-		return err
-	}
-	topics, err := convertTopics(rawTopics)
+	accPubKey, err := peer.CtxPubKey(ctx)
 	if err != nil {
 		return err
 	}
-	message := queue.Message{
-		IgnoreAccountId: req.AccountId,
-		Topics:          topics,
-	}
-	return p.queue.Add(ctx, message)
-}
-
-func checkSignature(accountId string, payload, signature []byte) (err error) {
-	pubKey, err := crypto.DecodeAccountAddress(accountId)
+	topics, err := convertTopics(req.Topics)
 	if err != nil {
 		return err
 	}
-	valid, err := pubKey.Verify(payload, signature)
+	valid, err := accPubKey.Verify(req.Message.Payload, req.Message.Signature)
 	if err != nil {
 		return err
 	}
 	if !valid {
 		return pushapi.ErrInvalidSignature
 	}
+
+	// mak a list of unique spaceKeys
+	var spaceKeys = make([]string, 0, len(topics))
+	for _, topic := range topics {
+		spaceKey := topic.SpaceKey()
+		if !slices.Contains(spaceKeys, spaceKey) {
+			spaceKeys = append(spaceKeys, spaceKey)
+		}
+	}
+	validSpaceKeys, err := p.spaceRepo.ExistedSpaces(ctx, spaceKeys)
+	if err != nil {
+		return err
+	}
+	// filter by registered space keys
+	var filteredTopics = topics[:0]
+	for _, topic := range topics {
+		if slices.Contains(validSpaceKeys, topic.SpaceKey()) {
+			filteredTopics = append(filteredTopics, topic)
+		}
+	}
+	topics = filteredTopics
+
+	if len(topics) == 0 {
+		return pushapi.ErrNoValidTopics
+	}
+
+	message := queue.Message{
+		IgnoreAccountId: accPubKey.Account(),
+		KeyId:           req.Message.KeyId,
+		Payload:         req.Message.Payload,
+		Signature:       req.Message.Signature,
+		Topics:          topics,
+	}
+	return p.queue.Add(ctx, message)
+}
+
+func (p *push) CreateSpace(ctx context.Context, key []byte, signature []byte) (err error) {
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return err
+	}
+	if err = checkSpaceSignature(accPubKey.Account(), key, signature); err != nil {
+		return
+	}
+	err = p.spaceRepo.Create(ctx, domain.Space{
+		Id:     base58.Encode(key),
+		Author: accPubKey.Account(),
+	})
+	if errors.Is(err, spacerepo.ErrSpaceExists) {
+		err = pushapi.ErrSpaceExists
+	}
+	return nil
+}
+
+func (p *push) RemoveSpace(ctx context.Context, key []byte, signature []byte) (err error) {
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return err
+	}
+	if err = checkSpaceSignature(accPubKey.Account(), key, signature); err != nil {
+		return
+	}
+	err = p.spaceRepo.Remove(ctx, domain.Space{
+		Id:     base58.Encode(key),
+		Author: accPubKey.Account(),
+	})
+	if errors.Is(err, spacerepo.ErrSpaceExists) {
+		err = pushapi.ErrSpaceExists
+	}
+	return nil
+}
+
+func checkSpaceSignature(identity string, spaceKey, signature []byte) error {
+	key, err := crypto.UnmarshalEd25519PublicKey(spaceKey)
+	if err != nil {
+		return err
+	}
+	valid, err := key.Verify([]byte(identity), signature)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return pushapi.ErrInvalidSignature
+	}
+	return nil
+}
+
+func (p *push) Subscriptions(ctx context.Context) (topics *pushapi.Topics, err error) {
+	return
+}
+
+func (p *push) Subscribe(ctx context.Context, topics *pushapi.Topics) error {
+	return nil
+}
+
+func (p *push) Unsubscribe(ctx context.Context, topics *pushapi.Topics) error {
 	return nil
 }
 
@@ -142,7 +229,7 @@ func convertTopics(topics *pushapi.Topics) (result []domain.Topic, err error) {
 		if !valid {
 			return nil, pushapi.ErrInvalidTopicSignature
 		}
-		result[i] = domain.Topic(base58.Encode(topic.SpaceKey) + "/" + topic.Topic)
+		result[i] = domain.NewTopic(topic.SpaceKey, topic.Topic)
 	}
 	return
 }

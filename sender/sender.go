@@ -2,7 +2,7 @@ package sender
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/base64"
 	"fmt"
 	"slices"
 
@@ -84,8 +84,10 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 	}
 
 	data := make(map[string]string)
-	topicsJSON, _ := json.Marshal(message.Topics)
-	data["x-anytype-topics"] = string(topicsJSON)
+
+	data["keyId"] = message.KeyId
+	data["payload"] = base64.StdEncoding.EncodeToString(message.Payload)
+	data["signature"] = base64.StdEncoding.EncodeToString(message.Signature)
 
 	var byProvider = make(map[domain.Platform]*domain.Message)
 

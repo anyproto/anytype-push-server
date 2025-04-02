@@ -15,6 +15,7 @@ import (
 	"github.com/anyproto/any-sync/app/logger"
 	"github.com/anyproto/any-sync/coordinator/coordinatorclient"
 	"github.com/anyproto/any-sync/coordinator/nodeconfsource"
+	"github.com/anyproto/any-sync/metric"
 	"github.com/anyproto/any-sync/nameservice/nameserviceclient"
 	"github.com/anyproto/any-sync/net/peerservice"
 	"github.com/anyproto/any-sync/net/pool"
@@ -36,12 +37,13 @@ import (
 	"github.com/anyproto/anytype-push-server/queue"
 	"github.com/anyproto/anytype-push-server/redisprovider"
 	"github.com/anyproto/anytype-push-server/repo/accountrepo"
+	"github.com/anyproto/anytype-push-server/repo/spacerepo"
 	"github.com/anyproto/anytype-push-server/repo/tokenrepo"
 	"github.com/anyproto/anytype-push-server/sender"
 	"github.com/anyproto/anytype-push-server/sender/provider/fcm"
 )
 
-var log = logger.NewNamed("publish.main")
+var log = logger.NewNamed("push.main")
 
 var (
 	flagConfigFile = flag.String("c", "etc/anytype-push-server.yml", "path to config file")
@@ -109,6 +111,7 @@ func main() {
 func Bootstrap(a *app.App) {
 	a.Register(db.New()).
 		Register(redisprovider.New()).
+		Register(metric.New()).
 		Register(server.New()).
 		Register(account.New()).
 		Register(pool.New()).
@@ -121,6 +124,7 @@ func Bootstrap(a *app.App) {
 		Register(secureservice.New()).
 		Register(tokenrepo.New()).
 		Register(accountrepo.New()).
+		Register(spacerepo.New()).
 		Register(queue.New()).
 		Register(sender.New()).
 		Register(fcm.New()).

@@ -5,6 +5,7 @@ import (
 
 	"github.com/anyproto/any-sync/accountservice"
 	"github.com/anyproto/any-sync/app"
+	"github.com/anyproto/any-sync/metric"
 	"github.com/anyproto/any-sync/net/rpc"
 	"github.com/anyproto/any-sync/net/secureservice"
 	"github.com/anyproto/any-sync/net/transport/quic"
@@ -42,6 +43,7 @@ type Config struct {
 	NetworkStorePath         string                 `yaml:"networkStorePath"`
 	NetworkUpdateIntervalSec int                    `yaml:"networkUpdateIntervalSec"`
 	FCM                      fcm.Config             `yaml:"fcm"`
+	Metric                   metric.Config          `yaml:"metric"`
 }
 
 func (c *Config) Init(a *app.App) (err error) {
@@ -94,4 +96,8 @@ func (c *Config) GetRedis() redisprovider.Config {
 
 func (c *Config) GetFCM() fcm.Config {
 	return c.FCM
+}
+
+func (c *Config) GetMetric() metric.Config {
+	return c.Metric
 }
