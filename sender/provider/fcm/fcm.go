@@ -111,5 +111,12 @@ func (f *fcmSender) buildFcmMessage(message domain.Message) *messaging.Multicast
 			Body:     f.config.DefaultMessage.Body,
 			ImageURL: f.config.DefaultMessage.ImageUrl,
 		},
+		APNS: &messaging.APNSConfig{
+			Payload: &messaging.APNSPayload{
+				Aps: &messaging.Aps{
+					MutableContent: true,
+				},
+			},
+		},
 	}
 }

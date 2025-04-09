@@ -5,6 +5,7 @@ package spacerepo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/anyproto/any-sync/app"
 	"go.mongodb.org/mongo-driver/bson"
@@ -53,6 +54,7 @@ func (r *spaceRepo) Run(ctx context.Context) error {
 }
 
 func (r *spaceRepo) Create(ctx context.Context, space domain.Space) (err error) {
+	space.Created = time.Now().Unix()
 	_, err = r.coll.InsertOne(ctx, space)
 	if mongo.IsDuplicateKeyError(err) {
 		err = ErrSpaceExists

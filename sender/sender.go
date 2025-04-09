@@ -85,9 +85,9 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 
 	data := make(map[string]string)
 
-	data["keyId"] = message.KeyId
-	data["payload"] = base64.StdEncoding.EncodeToString(message.Payload)
-	data["signature"] = base64.StdEncoding.EncodeToString(message.Signature)
+	data["x-any-key-id"] = message.KeyId
+	data["x-any-payload"] = base64.StdEncoding.EncodeToString(message.Payload)
+	data["x-any-signature"] = base64.StdEncoding.EncodeToString(message.Signature)
 
 	var byProvider = make(map[domain.Platform]*domain.Message)
 
