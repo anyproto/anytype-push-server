@@ -187,11 +187,41 @@ func checkSpaceSignature(identity string, spaceKey, signature []byte) error {
 }
 
 func (p *push) Subscriptions(ctx context.Context) (topics *pushapi.Topics, err error) {
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	dTopics, err := p.accountRepo.GetTopicsByAccountId(ctx, accPubKey.Account())
+	if err != nil {
+		return nil, err
+	}
+
+	topics = &pushapi.Topics{
+		Topics: make([]*pushapi.Topic, len(dTopics)),
+	}
+
+	for i, dtopic := range dTopics {
+		topics.Topics[i] = &pushapi.Topic{
+			SpaceKey: []byte(dtopic.SpaceKey()),
+			Topic:    dtopic.Topic(),
+		}
+	}
 	return
 }
 
 func (p *push) Subscribe(ctx context.Context, topics *pushapi.Topics) error {
-	return nil
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return err
+	}
+
+	dTopics, err := convertTopics(topics)
+	if err != nil {
+		return err
+	}
+	return p.accountRepo.SetAccountTopics(ctx, accPubKey.Account(), dTopics)
+
 }
 
 func (p *push) Unsubscribe(ctx context.Context, topics *pushapi.Topics) error {

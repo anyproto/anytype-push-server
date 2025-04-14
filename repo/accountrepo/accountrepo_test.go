@@ -49,6 +49,25 @@ func TestAccountRepo_GetAccountTopics(t *testing.T) {
 	assert.Equal(t, []string{"a"}, result)
 }
 
+func TestAccountRepo_GetTopicsByAccount(t *testing.T) {
+	fx := newFixture(t)
+	topics := []domain.Topic{newTestTopic(), newTestTopic(), newTestTopic()}
+	require.NoError(t, fx.SetAccountTopics(ctx, "a", topics[:1]))
+	require.NoError(t, fx.SetAccountTopics(ctx, "b", topics[1:]))
+
+	result, err := fx.GetTopicsByAccountId(ctx, "a")
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	assert.Contains(t, result, topics[0])
+
+	result, err = fx.GetTopicsByAccountId(ctx, "b")
+	require.NoError(t, err)
+	require.Len(t, result, 2)
+	assert.Contains(t, result, topics[1])
+	assert.Contains(t, result, topics[2])
+
+}
+
 func newFixture(t testing.TB) *fixture {
 	fx := &fixture{
 		AccountRepo: New(),

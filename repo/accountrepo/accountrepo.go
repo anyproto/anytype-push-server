@@ -26,6 +26,7 @@ func New() AccountRepo {
 type AccountRepo interface {
 	SetAccountTopics(ctx context.Context, accountId string, topics []domain.Topic) error
 	GetAccountIdsByTopics(ctx context.Context, topics []domain.Topic) ([]string, error)
+	GetTopicsByAccountId(ctx context.Context, accountId string) (topics []domain.Topic, err error)
 	app.ComponentRunnable
 }
 
@@ -67,6 +68,10 @@ type docId struct {
 	Id string `bson:"_id"`
 }
 
+type withTopics struct {
+	Topics []domain.Topic `bson:"topics"`
+}
+
 func (r *accountRepo) GetAccountIdsByTopics(ctx context.Context, topics []domain.Topic) ([]string, error) {
 	cur, err := r.coll.Find(ctx, bson.M{"topics": bson.M{"$in": topics}}, options.Find().SetProjection(bson.M{"_id": 1}))
 	if err != nil {
@@ -84,6 +89,16 @@ func (r *accountRepo) GetAccountIdsByTopics(ctx context.Context, topics []domain
 		ids[i] = d.Id
 	}
 	return ids, nil
+}
+
+func (r *accountRepo) GetTopicsByAccountId(ctx context.Context, accountId string) (topics []domain.Topic, err error) {
+	var topicsRes withTopics
+	err = r.coll.FindOne(ctx, bson.M{"_id": accountId}).Decode(&topicsRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return topicsRes.Topics, nil
 }
 
 func (r *accountRepo) Close(ctx context.Context) error {

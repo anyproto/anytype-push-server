@@ -22,6 +22,7 @@ import (
 type MockAccountRepo struct {
 	ctrl     *gomock.Controller
 	recorder *MockAccountRepoMockRecorder
+	isgomock struct{}
 }
 
 // MockAccountRepoMockRecorder is the mock recorder for MockAccountRepo.
@@ -42,46 +43,61 @@ func (m *MockAccountRepo) EXPECT() *MockAccountRepoMockRecorder {
 }
 
 // Close mocks base method.
-func (m *MockAccountRepo) Close(arg0 context.Context) error {
+func (m *MockAccountRepo) Close(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Close", arg0)
+	ret := m.ctrl.Call(m, "Close", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Close indicates an expected call of Close.
-func (mr *MockAccountRepoMockRecorder) Close(arg0 any) *gomock.Call {
+func (mr *MockAccountRepoMockRecorder) Close(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockAccountRepo)(nil).Close), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockAccountRepo)(nil).Close), ctx)
 }
 
 // GetAccountIdsByTopics mocks base method.
-func (m *MockAccountRepo) GetAccountIdsByTopics(arg0 context.Context, arg1 []domain.Topic) ([]string, error) {
+func (m *MockAccountRepo) GetAccountIdsByTopics(ctx context.Context, topics []domain.Topic) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountIdsByTopics", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAccountIdsByTopics", ctx, topics)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccountIdsByTopics indicates an expected call of GetAccountIdsByTopics.
-func (mr *MockAccountRepoMockRecorder) GetAccountIdsByTopics(arg0, arg1 any) *gomock.Call {
+func (mr *MockAccountRepoMockRecorder) GetAccountIdsByTopics(ctx, topics any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountIdsByTopics", reflect.TypeOf((*MockAccountRepo)(nil).GetAccountIdsByTopics), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountIdsByTopics", reflect.TypeOf((*MockAccountRepo)(nil).GetAccountIdsByTopics), ctx, topics)
+}
+
+// GetTopicsByAccountId mocks base method.
+func (m *MockAccountRepo) GetTopicsByAccountId(ctx context.Context, accountId string) ([]domain.Topic, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTopicsByAccountId", ctx, accountId)
+	ret0, _ := ret[0].([]domain.Topic)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTopicsByAccountId indicates an expected call of GetTopicsByAccountId.
+func (mr *MockAccountRepoMockRecorder) GetTopicsByAccountId(ctx, accountId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopicsByAccountId", reflect.TypeOf((*MockAccountRepo)(nil).GetTopicsByAccountId), ctx, accountId)
 }
 
 // Init mocks base method.
-func (m *MockAccountRepo) Init(arg0 *app.App) error {
+func (m *MockAccountRepo) Init(a *app.App) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init", arg0)
+	ret := m.ctrl.Call(m, "Init", a)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Init indicates an expected call of Init.
-func (mr *MockAccountRepoMockRecorder) Init(arg0 any) *gomock.Call {
+func (mr *MockAccountRepoMockRecorder) Init(a any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockAccountRepo)(nil).Init), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockAccountRepo)(nil).Init), a)
 }
 
 // Name mocks base method.
@@ -99,29 +115,29 @@ func (mr *MockAccountRepoMockRecorder) Name() *gomock.Call {
 }
 
 // Run mocks base method.
-func (m *MockAccountRepo) Run(arg0 context.Context) error {
+func (m *MockAccountRepo) Run(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Run", arg0)
+	ret := m.ctrl.Call(m, "Run", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Run indicates an expected call of Run.
-func (mr *MockAccountRepoMockRecorder) Run(arg0 any) *gomock.Call {
+func (mr *MockAccountRepoMockRecorder) Run(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockAccountRepo)(nil).Run), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockAccountRepo)(nil).Run), ctx)
 }
 
 // SetAccountTopics mocks base method.
-func (m *MockAccountRepo) SetAccountTopics(arg0 context.Context, arg1 string, arg2 []domain.Topic) error {
+func (m *MockAccountRepo) SetAccountTopics(ctx context.Context, accountId string, topics []domain.Topic) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetAccountTopics", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SetAccountTopics", ctx, accountId, topics)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetAccountTopics indicates an expected call of SetAccountTopics.
-func (mr *MockAccountRepoMockRecorder) SetAccountTopics(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockAccountRepoMockRecorder) SetAccountTopics(ctx, accountId, topics any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccountTopics", reflect.TypeOf((*MockAccountRepo)(nil).SetAccountTopics), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccountTopics", reflect.TypeOf((*MockAccountRepo)(nil).SetAccountTopics), ctx, accountId, topics)
 }

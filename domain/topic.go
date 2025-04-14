@@ -18,3 +18,10 @@ func (t Topic) SpaceKey() string {
 	}
 	return ""
 }
+
+func (t Topic) Topic() string {
+	if idx := strings.Index(string(t), "/"); idx != -1 && idx+1 < len(t) {
+		return string(t[idx+1:])
+	}
+	return ""
+}
