@@ -204,7 +204,7 @@ func (p *push) Subscriptions(ctx context.Context) (topics *pushapi.Topics, err e
 	for i, dtopic := range dTopics {
 		topics.Topics[i] = &pushapi.Topic{
 			SpaceKey: []byte(dtopic.SpaceKey()),
-			Topic:    string(dtopic),
+			Topic:    dtopic.Topic(),
 		}
 	}
 	return
