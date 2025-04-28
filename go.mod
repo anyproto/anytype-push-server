@@ -14,7 +14,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.3
-	go.uber.org/mock v0.5.0
+	go.uber.org/mock v0.5.2
 	go.uber.org/zap v1.27.0
 	google.golang.org/api v0.229.0
 	gopkg.in/yaml.v3 v3.0.1
