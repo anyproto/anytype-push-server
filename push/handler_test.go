@@ -2,6 +2,7 @@ package push
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -79,6 +80,115 @@ func TestHandler_SubscribeAll(t *testing.T) {
 		fx.accountRepo.EXPECT().SetAccountTopics(pCtx, acc.GetPublic().Account(), topics).Return(nil)
 
 		resp, err := fx.handler.SubscribeAll(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+}
+
+func TestHandler_Unsubscribe(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+
+		var rawTopics = &pushapi.Topics{}
+		var topicsToUnsubscribe []domain.Topic
+
+		for i := range 2 {
+			rawTopic := newTopic(fmt.Sprintf("topic%d", i))
+			rawTopics.Topics = append(rawTopics.Topics, rawTopic)
+
+			topic := domain.NewTopic(rawTopic.SpaceKey, rawTopic.Topic)
+			topicsToUnsubscribe = append(topicsToUnsubscribe, topic)
+		}
+
+		currentTopics := []domain.Topic{
+			topicsToUnsubscribe[0],
+			"otherSpaceKey/otherTopic1",
+			topicsToUnsubscribe[1],
+			"otherSpaceKey/otherTopic2",
+		}
+
+		expectedRemainingTopics := []domain.Topic{
+			"otherSpaceKey/otherTopic1",
+			"otherSpaceKey/otherTopic2",
+		}
+
+		req := &pushapi.UnsubscribeRequest{
+			Topics: rawTopics,
+		}
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.accountRepo.EXPECT().GetTopicsByAccountId(pCtx, acc.GetPublic().Account()).Return(currentTopics, nil)
+		fx.accountRepo.EXPECT().SetAccountTopics(pCtx, acc.GetPublic().Account(), expectedRemainingTopics).Return(nil)
+
+		resp, err := fx.handler.Unsubscribe(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
+	t.Run("unsubscribe-nonexistent-topic", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+
+		rawTopic := newTopic("nonexistentTopic")
+
+		req := &pushapi.UnsubscribeRequest{
+			Topics: &pushapi.Topics{Topics: []*pushapi.Topic{rawTopic}},
+		}
+
+		currentTopics := []domain.Topic{
+			"otherSpaceKey/otherTopic1",
+			"otherSpaceKey/otherTopic2",
+		}
+
+		expectedRemainingTopics := currentTopics
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.accountRepo.EXPECT().GetTopicsByAccountId(pCtx, acc.GetPublic().Account()).Return(currentTopics, nil)
+		fx.accountRepo.EXPECT().SetAccountTopics(pCtx, acc.GetPublic().Account(), expectedRemainingTopics).Return(nil)
+
+		resp, err := fx.handler.Unsubscribe(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
+	t.Run("get-topics-error", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+
+		rawTopic := newTopic("topicX")
+
+		req := &pushapi.UnsubscribeRequest{
+			Topics: &pushapi.Topics{Topics: []*pushapi.Topic{rawTopic}},
+		}
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.accountRepo.EXPECT().GetTopicsByAccountId(pCtx, acc.GetPublic().Account()).Return(nil, errors.New("db error"))
+
+		resp, err := fx.handler.Unsubscribe(pCtx, req)
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "db error")
+	})
+
+	t.Run("empty-topics-unsubscribe", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+
+		req := &pushapi.UnsubscribeRequest{
+			Topics: &pushapi.Topics{},
+		}
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		resp, err := fx.handler.Unsubscribe(pCtx, req)
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
 	})

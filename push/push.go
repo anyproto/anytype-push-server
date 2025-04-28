@@ -225,7 +225,38 @@ func (p *push) Subscribe(ctx context.Context, topics *pushapi.Topics) error {
 }
 
 func (p *push) Unsubscribe(ctx context.Context, topics *pushapi.Topics) error {
-	return nil
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return err
+	}
+
+	dTopics, err := convertTopics(topics)
+	if err != nil {
+		return err
+	}
+
+	if len(dTopics) == 0 {
+		return nil
+	}
+
+	currentTopics, err := p.accountRepo.GetTopicsByAccountId(ctx, accPubKey.Account())
+	if err != nil {
+		return err
+	}
+
+	removeSet := make(map[domain.Topic]struct{}, len(dTopics))
+	for _, t := range dTopics {
+		removeSet[t] = struct{}{}
+	}
+
+	remainingTopics := make([]domain.Topic, 0, len(currentTopics))
+	for _, t := range currentTopics {
+		if _, shouldRemove := removeSet[t]; !shouldRemove {
+			remainingTopics = append(remainingTopics, t)
+		}
+	}
+
+	return p.accountRepo.SetAccountTopics(ctx, accPubKey.Account(), remainingTopics)
 }
 
 func convertTopics(topics *pushapi.Topics) (result []domain.Topic, err error) {
