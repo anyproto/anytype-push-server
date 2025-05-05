@@ -272,7 +272,6 @@ func convertTopics(topics *pushapi.Topics) (result []domain.Topic, err error) {
 	result = make([]domain.Topic, len(topics.Topics))
 
 	var pks = map[string]crypto.PubKey{}
-	log.Info("convert topics: ", zap.String("topics", topics.String()))
 	getKey := func(spaceKey []byte) (crypto.PubKey, error) {
 		if key, ok := pks[string(spaceKey)]; ok {
 			return key, nil
