@@ -12,7 +12,12 @@ func NewTopic(spaceKey []byte, topic string) Topic {
 
 type Topic string
 
-func (t Topic) SpaceKey() string {
+func (t Topic) SpaceKeyRaw() ([]byte, error) {
+	return base58.Decode(t.SpaceKeyBase58())
+
+}
+
+func (t Topic) SpaceKeyBase58() string {
 	if idx := strings.Index(string(t), "/"); idx != -1 {
 		return string(t[:idx])
 	}

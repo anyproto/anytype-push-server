@@ -6,11 +6,14 @@ import (
 	"slices"
 
 	"github.com/anyproto/any-sync/app"
+	"github.com/anyproto/any-sync/app/logger"
 	"github.com/anyproto/any-sync/metric"
 	"github.com/anyproto/any-sync/net/peer"
 	"github.com/anyproto/any-sync/net/rpc/server"
 	"github.com/anyproto/any-sync/util/crypto"
 	"github.com/mr-tron/base58"
+
+	"go.uber.org/zap"
 
 	"github.com/anyproto/anytype-push-server/domain"
 	"github.com/anyproto/anytype-push-server/pushclient/pushapi"
@@ -21,6 +24,8 @@ import (
 )
 
 const CName = "push"
+
+var log = logger.NewNamed(CName)
 
 func New() Push {
 	return new(push)
@@ -103,7 +108,7 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
 	// mak a list of unique spaceKeys
 	var spaceKeys = make([]string, 0, len(topics))
 	for _, topic := range topics {
-		spaceKey := topic.SpaceKey()
+		spaceKey := topic.SpaceKeyBase58()
 		if !slices.Contains(spaceKeys, spaceKey) {
 			spaceKeys = append(spaceKeys, spaceKey)
 		}
@@ -115,7 +120,7 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
 	// filter by registered space keys
 	var filteredTopics = topics[:0]
 	for _, topic := range topics {
-		if slices.Contains(validSpaceKeys, topic.SpaceKey()) {
+		if slices.Contains(validSpaceKeys, topic.SpaceKeyBase58()) {
 			filteredTopics = append(filteredTopics, topic)
 		}
 	}
@@ -202,8 +207,12 @@ func (p *push) Subscriptions(ctx context.Context) (topics *pushapi.Topics, err e
 	}
 
 	for i, dtopic := range dTopics {
+		raw, err := dtopic.SpaceKeyRaw()
+		if err != nil {
+			return nil, err
+		}
 		topics.Topics[i] = &pushapi.Topic{
-			SpaceKey: []byte(dtopic.SpaceKey()),
+			SpaceKey: raw,
 			Topic:    dtopic.Topic(),
 		}
 	}
@@ -263,13 +272,14 @@ func convertTopics(topics *pushapi.Topics) (result []domain.Topic, err error) {
 	result = make([]domain.Topic, len(topics.Topics))
 
 	var pks = map[string]crypto.PubKey{}
-
 	getKey := func(spaceKey []byte) (crypto.PubKey, error) {
 		if key, ok := pks[string(spaceKey)]; ok {
 			return key, nil
 		}
+
 		key, decErr := crypto.UnmarshalEd25519PublicKey(spaceKey)
 		if decErr != nil {
+			log.Info("convert topics unmarshall err: ", zap.Int("len", len(spaceKey)), zap.ByteString("spaceKey", spaceKey))
 			return nil, decErr
 		}
 		pks[string(spaceKey)] = key

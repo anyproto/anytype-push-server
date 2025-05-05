@@ -12,6 +12,6 @@ func TestTopic_SpaceKey(t *testing.T) {
 	spaceKey := make([]byte, 32)
 	_, _ = rand.Read(spaceKey)
 	topic := NewTopic(spaceKey, "topic")
-	res := topic.SpaceKey()
+	res := topic.SpaceKeyBase58()
 	assert.Equal(t, base58.Encode(spaceKey), res)
 }
