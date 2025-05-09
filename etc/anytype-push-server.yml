@@ -12,7 +12,7 @@ networkStorePath: .
 networkUpdateIntervalSec: 300
 fcm:
   credentialsFile:
-    android: /home/che/anytype-android-debug-firebase-adminsdk-4jaud-c2724bfb8a.json
+    android: /home/che/anytype-apps-firebase-adminsdk-fbsvc-b046e4ac32.json
     ios: /home/che/anytype-apps-firebase-adminsdk-fbsvc-b046e4ac32.json
   defaultMessage:
     title: You have a new message
