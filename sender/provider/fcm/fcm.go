@@ -2,6 +2,8 @@ package fcm
 
 import (
 	"context"
+	"fmt"
+	"maps"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
@@ -33,13 +35,13 @@ func (f *fcm) Init(a *app.App) (err error) {
 	s := a.MustComponent(sender.CName).(sender.Sender)
 	conf := a.MustComponent("config").(configSource).GetFCM()
 
-	android, err := newSender(conf, conf.CredentialsFile.Android)
+	android, err := newSender(conf, domain.PlatformAndroid, conf.CredentialsFile.Android)
 	if err != nil {
 		return err
 	}
 	s.RegisterProvider(domain.PlatformAndroid, android)
 
-	ios, err := newSender(conf, conf.CredentialsFile.IOS)
+	ios, err := newSender(conf, domain.PlatformIOS, conf.CredentialsFile.IOS)
 	if err != nil {
 		return err
 	}
@@ -51,7 +53,7 @@ func (f *fcm) Name() (name string) {
 	return CName
 }
 
-func newSender(config Config, credentialsFile string) (sender.Provider, error) {
+func newSender(config Config, platform domain.Platform, credentialsFile string) (sender.Provider, error) {
 	opt := option.WithCredentialsFile(credentialsFile)
 	fcmApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
@@ -61,12 +63,13 @@ func newSender(config Config, credentialsFile string) (sender.Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &fcmSender{client: client, config: config}, nil
+	return &fcmSender{client: client, config: config, platform: platform}, nil
 }
 
 type fcmSender struct {
-	client *messaging.Client
-	config Config
+	client   *messaging.Client
+	platform domain.Platform
+	config   Config
 }
 
 const batchSize = 500
@@ -81,8 +84,19 @@ func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onI
 			message.Tokens = nextBatch
 			nextBatch = nil
 		}
+
+		var multicastMessage *messaging.MulticastMessage
+		switch f.platform {
+		case domain.PlatformIOS:
+			multicastMessage = f.buildFcmIosMessage(message)
+		case domain.PlatformAndroid:
+			multicastMessage = f.buildFcmAndroidMessage(message)
+		default:
+			return fmt.Errorf("unexpected platform %v", f.platform)
+		}
+
 		var response *messaging.BatchResponse
-		if response, err = f.client.SendEachForMulticast(ctx, f.buildFcmMessage(message)); err != nil {
+		if response, err = f.client.SendEachForMulticast(ctx, multicastMessage); err != nil {
 			return err
 		}
 		for i, resp := range response.Responses {
@@ -102,7 +116,7 @@ func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onI
 	return nil
 }
 
-func (f *fcmSender) buildFcmMessage(message domain.Message) *messaging.MulticastMessage {
+func (f *fcmSender) buildFcmIosMessage(message domain.Message) *messaging.MulticastMessage {
 	return &messaging.MulticastMessage{
 		Tokens: message.Tokens,
 		Data:   message.Data,
@@ -118,5 +132,17 @@ func (f *fcmSender) buildFcmMessage(message domain.Message) *messaging.Multicast
 				},
 			},
 		},
+	}
+}
+
+func (f *fcmSender) buildFcmAndroidMessage(message domain.Message) *messaging.MulticastMessage {
+	var data = make(map[string]string)
+	maps.Copy(data, message.Data)
+	data["x-any-title"] = f.config.DefaultMessage.Title
+	data["x-any-body"] = f.config.DefaultMessage.Body
+	data["x-any-image-url"] = f.config.DefaultMessage.ImageUrl
+	return &messaging.MulticastMessage{
+		Tokens: message.Tokens,
+		Data:   data,
 	}
 }
