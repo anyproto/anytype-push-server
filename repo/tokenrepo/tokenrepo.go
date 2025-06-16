@@ -30,6 +30,7 @@ func New() TokenRepo {
 
 type TokenRepo interface {
 	AddToken(ctx context.Context, token domain.Token) (err error)
+	RevokeToken(ctx context.Context, accountId string, peerId string) error
 	UpdateTokenStatus(ctx context.Context, tokenId string, status domain.TokenStatus) (err error)
 	GetActiveTokensByAccountIds(ctx context.Context, accountIds []string) (token []domain.Token, err error)
 	app.ComponentRunnable
@@ -77,6 +78,17 @@ func (t *tokenRepo) AddToken(ctx context.Context, token domain.Token) (err error
 	)
 	if mongo.IsDuplicateKeyError(err) {
 		return ErrTokenExists
+	}
+	return
+}
+
+func (t *tokenRepo) RevokeToken(ctx context.Context, accountId string, peerId string) (err error) {
+	_, err = t.coll.DeleteOne(ctx, bson.D{
+		{"accountId", accountId},
+		{"peerId", peerId},
+	})
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil
 	}
 	return
 }

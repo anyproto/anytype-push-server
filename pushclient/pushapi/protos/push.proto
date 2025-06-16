@@ -15,6 +15,7 @@ enum ErrCodes {
 
 service Push {
   rpc SetToken(SetTokenRequest) returns (Ok);
+  rpc RevokeToken(Ok) returns (Ok);
   rpc CreateSpace(CreateSpaceRequest) returns (Ok);
   rpc RemoveSpace(RemoveSpaceRequest) returns (Ok);
   rpc Subscriptions(SubscriptionsRequest) returns (SubscriptionsResponse);
