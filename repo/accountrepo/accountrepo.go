@@ -4,6 +4,7 @@ package accountrepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/anyproto/any-sync/app"
@@ -95,9 +96,11 @@ func (r *accountRepo) GetTopicsByAccountId(ctx context.Context, accountId string
 	var topicsRes withTopics
 	err = r.coll.FindOne(ctx, bson.M{"_id": accountId}).Decode(&topicsRes)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
 		return nil, err
 	}
-
 	return topicsRes.Topics, nil
 }
 

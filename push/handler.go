@@ -110,6 +110,21 @@ func (h *handler) SetToken(ctx context.Context, req *pushapi.SetTokenRequest) (r
 	return &pushapi.Ok{}, nil
 }
 
+func (h *handler) RevokeToken(ctx context.Context, req *pushapi.Ok) (resp *pushapi.Ok, err error) {
+	st := time.Now()
+	defer func() {
+		h.p.metric.RequestLog(ctx, "push.revokeToken",
+			metric.TotalDur(time.Since(st)),
+			zap.String("addr", peer.CtxPeerAddr(ctx)),
+			zap.Error(err),
+		)
+	}()
+	if err = h.p.RevokeToken(ctx); err != nil {
+		return nil, err
+	}
+	return &pushapi.Ok{}, nil
+}
+
 func (h *handler) SubscribeAll(ctx context.Context, req *pushapi.SubscribeAllRequest) (resp *pushapi.Ok, err error) {
 	st := time.Now()
 	defer func() {

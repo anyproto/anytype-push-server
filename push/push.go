@@ -76,6 +76,18 @@ func (p *push) AddToken(ctx context.Context, req *pushapi.SetTokenRequest) error
 	})
 }
 
+func (p *push) RevokeToken(ctx context.Context) error {
+	accPubKey, err := peer.CtxPubKey(ctx)
+	if err != nil {
+		return err
+	}
+	peerId, err := peer.CtxPeerId(ctx)
+	if err != nil {
+		return err
+	}
+	return p.tokenRepo.RevokeToken(ctx, accPubKey.Account(), peerId)
+}
+
 func (p *push) SubscribeAll(ctx context.Context, req *pushapi.SubscribeAllRequest) error {
 	accPubKey, err := peer.CtxPubKey(ctx)
 	if err != nil {
@@ -127,7 +139,7 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
 	topics = filteredTopics
 
 	if len(topics) == 0 {
-		return pushapi.ErrNoValidTopics
+		return nil
 	}
 
 	message := queue.Message{

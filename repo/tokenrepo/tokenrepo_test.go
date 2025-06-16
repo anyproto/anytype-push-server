@@ -33,6 +33,20 @@ func TestTokenRepo_AddToken(t *testing.T) {
 	require.Equal(t, "1", tokens[0].Id)
 }
 
+func TestTokenRepo_RemoveToken(t *testing.T) {
+	fx := newFixture(t)
+	require.NoError(t, fx.AddToken(ctx, domain.Token{
+		Id:        "1",
+		AccountId: "a1",
+		PeerId:    "p1",
+	}))
+	require.NoError(t, fx.RevokeToken(ctx, "a1", "p1"))
+	require.NoError(t, fx.RevokeToken(ctx, "a1", "p1"))
+	tokens, err := fx.GetActiveTokensByAccountIds(ctx, []string{"a1"})
+	require.NoError(t, err)
+	require.Len(t, tokens, 0)
+}
+
 func TestTokenRepo_UpdateTokenStatus(t *testing.T) {
 	fx := newFixture(t)
 	require.NoError(t, fx.AddToken(ctx, domain.Token{
