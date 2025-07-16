@@ -11,7 +11,7 @@ require (
 	github.com/anyproto/any-sync v0.9.0
 	github.com/anyproto/anytype-push-server/pushclient v0.0.0-00010101000000-000000000000
 	github.com/mr-tron/base58 v1.2.0
-	github.com/redis/go-redis/v9 v9.10.0
+	github.com/redis/go-redis/v9 v9.11.0
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.4
 	go.uber.org/mock v0.5.2
