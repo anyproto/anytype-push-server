@@ -10,7 +10,9 @@ require (
 	github.com/ahmetb/govvv v0.3.0
 	github.com/anyproto/any-sync v0.9.0
 	github.com/anyproto/anytype-push-server/pushclient v0.0.0-00010101000000-000000000000
+	github.com/cheggaaa/mb/v3 v3.0.2
 	github.com/mr-tron/base58 v1.2.0
+	github.com/prometheus/client_golang v1.22.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.4
@@ -88,7 +90,6 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.64.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect

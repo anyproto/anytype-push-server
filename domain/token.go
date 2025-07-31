@@ -4,6 +4,17 @@ import "github.com/anyproto/anytype-push-server/pushclient/pushapi"
 
 type Platform uint8
 
+func (p Platform) String() string {
+	switch p {
+	case PlatformIOS:
+		return "ios"
+	case PlatformAndroid:
+		return "android"
+	default:
+		return "unknown"
+	}
+}
+
 const (
 	PlatformIOS     = Platform(pushapi.Platform_IOS)
 	PlatformAndroid = Platform(pushapi.Platform_Android)

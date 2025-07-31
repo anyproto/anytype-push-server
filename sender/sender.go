@@ -5,11 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"slices"
+	"sync/atomic"
 	"time"
 
 	"github.com/anyproto/any-sync/app"
 	"github.com/anyproto/any-sync/app/logger"
+	"github.com/anyproto/any-sync/metric"
 	"github.com/cheggaaa/mb/v3"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/anyproto/anytype-push-server/domain"
@@ -41,6 +44,11 @@ type sender struct {
 	queue         queue.Queue
 	invalidTokens *mb.MB[string]
 	providers     map[domain.Platform]Provider
+	metrics       struct {
+		sendTokens   atomic.Uint64
+		sendCount    atomic.Uint64
+		sendDuration *prometheus.SummaryVec
+	}
 }
 
 func (s *sender) Init(a *app.App) (err error) {
@@ -49,6 +57,7 @@ func (s *sender) Init(a *app.App) (err error) {
 	s.queue = a.MustComponent(queue.CName).(queue.Queue)
 	s.providers = make(map[domain.Platform]Provider)
 	s.invalidTokens = mb.New[string](100)
+	registerMetrics(a.MustComponent(metric.CName).(metric.Metric).Registry(), s)
 	return
 }
 
@@ -57,6 +66,7 @@ func (s *sender) Name() (name string) {
 }
 
 func (s *sender) Run(ctx context.Context) (err error) {
+	go s.removeTokensBatch()
 	// TODO: move the num runners to the config
 	for range 10 {
 		if err = s.queue.Consume(ctx, s.SendMessage); err != nil {
@@ -117,6 +127,10 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 			if err = provider.SendMessage(ctx, *msg, s.onInvalid); err != nil {
 				return err
 			}
+			s.metrics.sendCount.Add(1)
+			s.metrics.sendTokens.Add(uint64(len(msg.Tokens)))
+			dur := time.Since(message.Created)
+			s.metrics.sendDuration.WithLabelValues(prv.String()).Observe(dur.Seconds())
 		}
 	}
 	return nil
@@ -128,7 +142,7 @@ func (s *sender) onInvalid(token string) {
 	_ = s.invalidTokens.Add(ctx, token)
 }
 
-func (s *sender) removeTokensBatch(token string) {
+func (s *sender) removeTokensBatch() {
 	ctx := mb.CtxWithTimeLimit(context.Background(), time.Second)
 	cond := s.invalidTokens.NewCond().WithMin(10)
 	for {
