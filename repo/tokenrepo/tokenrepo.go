@@ -32,6 +32,7 @@ type TokenRepo interface {
 	AddToken(ctx context.Context, token domain.Token) (err error)
 	RevokeToken(ctx context.Context, accountId string, peerId string) error
 	UpdateTokenStatus(ctx context.Context, tokenId string, status domain.TokenStatus) (err error)
+	RemoveTokens(ctx context.Context, tokens []string) error
 	GetActiveTokensByAccountIds(ctx context.Context, accountIds []string) (token []domain.Token, err error)
 	app.ComponentRunnable
 }
@@ -90,6 +91,11 @@ func (t *tokenRepo) RevokeToken(ctx context.Context, accountId string, peerId st
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
 	}
+	return
+}
+
+func (t *tokenRepo) RemoveTokens(ctx context.Context, tokens []string) (err error) {
+	_, err = t.coll.DeleteMany(ctx, bson.D{{"_id", bson.D{{"$in", tokens}}}})
 	return
 }
 

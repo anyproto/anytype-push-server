@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/anyproto/any-sync/app"
 	"github.com/anyproto/any-sync/app/logger"
+	"github.com/cheggaaa/mb/v3"
 	"go.uber.org/zap"
 
 	"github.com/anyproto/anytype-push-server/domain"
@@ -34,10 +36,11 @@ type Provider interface {
 }
 
 type sender struct {
-	accountRepo accountrepo.AccountRepo
-	tokenRepo   tokenrepo.TokenRepo
-	queue       queue.Queue
-	providers   map[domain.Platform]Provider
+	accountRepo   accountrepo.AccountRepo
+	tokenRepo     tokenrepo.TokenRepo
+	queue         queue.Queue
+	invalidTokens *mb.MB[string]
+	providers     map[domain.Platform]Provider
 }
 
 func (s *sender) Init(a *app.App) (err error) {
@@ -45,6 +48,7 @@ func (s *sender) Init(a *app.App) (err error) {
 	s.tokenRepo = a.MustComponent(tokenrepo.CName).(tokenrepo.TokenRepo)
 	s.queue = a.MustComponent(queue.CName).(queue.Queue)
 	s.providers = make(map[domain.Platform]Provider)
+	s.invalidTokens = mb.New[string](100)
 	return
 }
 
@@ -119,9 +123,28 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 }
 
 func (s *sender) onInvalid(token string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = s.invalidTokens.Add(ctx, token)
+}
 
+func (s *sender) removeTokensBatch(token string) {
+	ctx := mb.CtxWithTimeLimit(context.Background(), time.Second)
+	cond := s.invalidTokens.NewCond().WithMin(10)
+	for {
+		tokens, err := cond.Wait(ctx)
+		if err != nil {
+			return
+		}
+		st := time.Now()
+		if err = s.tokenRepo.RemoveTokens(ctx, tokens); err != nil {
+			log.Error("remove tokens error", zap.Error(err))
+		} else {
+			log.Info("remove tokens success", zap.Int("count", len(tokens)), zap.Duration("dur", time.Since(st)))
+		}
+	}
 }
 
 func (s *sender) Close(ctx context.Context) (err error) {
-	return
+	return s.invalidTokens.Close()
 }

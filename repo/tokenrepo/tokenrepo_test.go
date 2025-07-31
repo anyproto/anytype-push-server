@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/anyproto/any-sync/app"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/anyproto/anytype-push-server/db"
@@ -45,6 +46,26 @@ func TestTokenRepo_RemoveToken(t *testing.T) {
 	tokens, err := fx.GetActiveTokensByAccountIds(ctx, []string{"a1"})
 	require.NoError(t, err)
 	require.Len(t, tokens, 0)
+}
+
+func TestTokenRepo_RemoveTokens(t *testing.T) {
+	fx := newFixture(t)
+	require.NoError(t, fx.AddToken(ctx, domain.Token{
+		Id:        "1",
+		AccountId: "a1",
+		PeerId:    "p1",
+	}))
+	require.NoError(t, fx.AddToken(ctx, domain.Token{
+		Id:        "2",
+		AccountId: "a1",
+		PeerId:    "p2",
+	}))
+
+	require.NoError(t, fx.RemoveTokens(ctx, []string{"1", "2"}))
+
+	res, err := fx.GetActiveTokensByAccountIds(ctx, []string{"a1"})
+	require.NoError(t, err)
+	assert.Len(t, res, 0)
 }
 
 func TestTokenRepo_UpdateTokenStatus(t *testing.T) {
