@@ -75,7 +75,9 @@ func (q *queue) Run(ctx context.Context) (err error) {
 }
 
 func (q *queue) Add(ctx context.Context, msg Message) error {
-	msg.Created = time.Now()
+	if msg.Created.IsZero() {
+		msg.Created = time.Now()
+	}
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
