@@ -149,7 +149,22 @@ func (h *handler) Notify(ctx context.Context, req *pushapi.NotifyRequest) (resp 
 			zap.Error(err),
 		)
 	}()
-	if err = h.p.Notify(ctx, req); err != nil {
+	if err = h.p.Notify(ctx, req, false); err != nil {
+		return
+	}
+	return &pushapi.Ok{}, nil
+}
+
+func (h *handler) NotifySilent(ctx context.Context, req *pushapi.NotifyRequest) (resp *pushapi.Ok, err error) {
+	st := time.Now()
+	defer func() {
+		h.p.metric.RequestLog(ctx, "push.notifySilent",
+			metric.TotalDur(time.Since(st)),
+			zap.String("addr", peer.CtxPeerAddr(ctx)),
+			zap.Error(err),
+		)
+	}()
+	if err = h.p.Notify(ctx, req, true); err != nil {
 		return
 	}
 	return &pushapi.Ok{}, nil

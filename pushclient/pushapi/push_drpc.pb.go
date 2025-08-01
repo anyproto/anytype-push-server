@@ -42,6 +42,7 @@ type DRPCPushClient interface {
 	Unsubscribe(ctx context.Context, in *UnsubscribeRequest) (*Ok, error)
 	SubscribeAll(ctx context.Context, in *SubscribeAllRequest) (*Ok, error)
 	Notify(ctx context.Context, in *NotifyRequest) (*Ok, error)
+	NotifySilent(ctx context.Context, in *NotifyRequest) (*Ok, error)
 }
 
 type drpcPushClient struct {
@@ -135,6 +136,15 @@ func (c *drpcPushClient) Notify(ctx context.Context, in *NotifyRequest) (*Ok, er
 	return out, nil
 }
 
+func (c *drpcPushClient) NotifySilent(ctx context.Context, in *NotifyRequest) (*Ok, error) {
+	out := new(Ok)
+	err := c.cc.Invoke(ctx, "/pushproto.Push/NotifySilent", drpcEncoding_File_pushclient_pushapi_protos_push_proto{}, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 type DRPCPushServer interface {
 	SetToken(context.Context, *SetTokenRequest) (*Ok, error)
 	RevokeToken(context.Context, *Ok) (*Ok, error)
@@ -145,6 +155,7 @@ type DRPCPushServer interface {
 	Unsubscribe(context.Context, *UnsubscribeRequest) (*Ok, error)
 	SubscribeAll(context.Context, *SubscribeAllRequest) (*Ok, error)
 	Notify(context.Context, *NotifyRequest) (*Ok, error)
+	NotifySilent(context.Context, *NotifyRequest) (*Ok, error)
 }
 
 type DRPCPushUnimplementedServer struct{}
@@ -185,9 +196,13 @@ func (s *DRPCPushUnimplementedServer) Notify(context.Context, *NotifyRequest) (*
 	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
 }
 
+func (s *DRPCPushUnimplementedServer) NotifySilent(context.Context, *NotifyRequest) (*Ok, error) {
+	return nil, drpcerr.WithCode(errors.New("Unimplemented"), drpcerr.Unimplemented)
+}
+
 type DRPCPushDescription struct{}
 
-func (DRPCPushDescription) NumMethods() int { return 9 }
+func (DRPCPushDescription) NumMethods() int { return 10 }
 
 func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, interface{}, bool) {
 	switch n {
@@ -272,6 +287,15 @@ func (DRPCPushDescription) Method(n int) (string, drpc.Encoding, drpc.Receiver, 
 						in1.(*NotifyRequest),
 					)
 			}, DRPCPushServer.Notify, true
+	case 9:
+		return "/pushproto.Push/NotifySilent", drpcEncoding_File_pushclient_pushapi_protos_push_proto{},
+			func(srv interface{}, ctx context.Context, in1, in2 interface{}) (drpc.Message, error) {
+				return srv.(DRPCPushServer).
+					NotifySilent(
+						ctx,
+						in1.(*NotifyRequest),
+					)
+			}, DRPCPushServer.NotifySilent, true
 	default:
 		return "", nil, nil, nil, false
 	}
@@ -419,6 +443,22 @@ type drpcPush_NotifyStream struct {
 }
 
 func (x *drpcPush_NotifyStream) SendAndClose(m *Ok) error {
+	if err := x.MsgSend(m, drpcEncoding_File_pushclient_pushapi_protos_push_proto{}); err != nil {
+		return err
+	}
+	return x.CloseSend()
+}
+
+type DRPCPush_NotifySilentStream interface {
+	drpc.Stream
+	SendAndClose(*Ok) error
+}
+
+type drpcPush_NotifySilentStream struct {
+	drpc.Stream
+}
+
+func (x *drpcPush_NotifySilentStream) SendAndClose(m *Ok) error {
 	if err := x.MsgSend(m, drpcEncoding_File_pushclient_pushapi_protos_push_proto{}); err != nil {
 		return err
 	}

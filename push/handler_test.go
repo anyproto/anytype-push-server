@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/anyproto/any-sync/app"
 	"github.com/anyproto/any-sync/metric"
@@ -192,6 +193,89 @@ func TestHandler_Unsubscribe(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
 	})
+}
+
+func TestHandler_Notify(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+		rawTopic := newTopic("topicX")
+		topic := domain.NewTopic(rawTopic.SpaceKey, rawTopic.Topic)
+		req := newNotifyRequest(acc, []byte{1, 2, 3}, rawTopic)
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.spaceRepo.EXPECT().ExistedSpaces(pCtx, []string{topic.SpaceKeyBase58()}).Return([]string{topic.SpaceKeyBase58()}, nil)
+		fx.queue.EXPECT().Add(pCtx, gomock.Cond[queue.Message](func(x queue.Message) bool {
+			exp := queue.Message{
+				IgnoreAccountId: acc.GetPublic().Account(),
+				KeyId:           req.Message.KeyId,
+				Payload:         req.Message.Payload,
+				Signature:       req.Message.Signature,
+				Topics:          []domain.Topic{topic},
+				GroupId:         "groupId",
+				Silent:          false,
+			}
+			x.Created = time.Time{}
+			return assert.Equal(t, exp, x)
+		})).Return(nil)
+
+		resp, err := fx.handler.Notify(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+	t.Run("success silent", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+		rawTopic := newTopic(acc.GetPublic().Account())
+		topic := domain.NewTopic(rawTopic.SpaceKey, rawTopic.Topic)
+
+		invalidRawTopic := newTopic("1")
+		invalidTopic := domain.NewTopic(invalidRawTopic.SpaceKey, invalidRawTopic.Topic)
+
+		req := newNotifyRequest(acc, nil, rawTopic, invalidRawTopic)
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.spaceRepo.EXPECT().
+			ExistedSpaces(pCtx, []string{topic.SpaceKeyBase58(), invalidTopic.SpaceKeyBase58()}).
+			Return([]string{topic.SpaceKeyBase58(), invalidTopic.SpaceKeyBase58()}, nil)
+		fx.queue.EXPECT().Add(pCtx, gomock.Cond[queue.Message](func(x queue.Message) bool {
+			exp := queue.Message{
+				// expect only the valid topic where the topic field equals identity
+				Topics:  []domain.Topic{topic},
+				GroupId: "groupId",
+				Silent:  true,
+			}
+			x.Created = time.Time{}
+			return assert.Equal(t, exp, x)
+		})).Return(nil)
+
+		resp, err := fx.handler.NotifySilent(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+}
+
+func newNotifyRequest(accKey crypto.PrivKey, payload []byte, rawTopics ...*pushapi.Topic) *pushapi.NotifyRequest {
+	var msg *pushapi.Message
+	if payload != nil {
+		sig, _ := accKey.Sign(payload)
+		msg = &pushapi.Message{
+			KeyId:     "key1",
+			Payload:   payload,
+			Signature: sig,
+		}
+	}
+	return &pushapi.NotifyRequest{
+		Topics: &pushapi.Topics{
+			Topics: rawTopics,
+		},
+		Message: msg,
+		GroupId: "groupId",
+	}
 }
 
 type fixture struct {

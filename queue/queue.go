@@ -33,6 +33,8 @@ type Message struct {
 	Signature       []byte         `json:"signature"`
 	Topics          []domain.Topic `json:"topics"`
 	Created         time.Time      `json:"created"`
+	GroupId         string         `json:"groupId"`
+	Silent          bool           `json:"silent"`
 }
 
 type Queue interface {

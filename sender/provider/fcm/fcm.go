@@ -88,9 +88,17 @@ func (f *fcmSender) SendMessage(ctx context.Context, message domain.Message, onI
 		var multicastMessage *messaging.MulticastMessage
 		switch f.platform {
 		case domain.PlatformIOS:
-			multicastMessage = f.buildFcmIosMessage(message)
+			if message.Silent {
+				multicastMessage = f.buildFcmIosSilentMessage(message)
+			} else {
+				multicastMessage = f.buildFcmIosMessage(message)
+			}
 		case domain.PlatformAndroid:
-			multicastMessage = f.buildFcmAndroidMessage(message)
+			if message.Silent {
+				multicastMessage = f.buildFcmAndroidSilentMessage(message)
+			} else {
+				multicastMessage = f.buildFcmAndroidMessage(message)
+			}
 		default:
 			return fmt.Errorf("unexpected platform %v", f.platform)
 		}
@@ -135,6 +143,20 @@ func (f *fcmSender) buildFcmIosMessage(message domain.Message) *messaging.Multic
 	}
 }
 
+func (f *fcmSender) buildFcmIosSilentMessage(message domain.Message) *messaging.MulticastMessage {
+	return &messaging.MulticastMessage{
+		Tokens: message.Tokens,
+		Data:   message.Data,
+		APNS: &messaging.APNSConfig{
+			Payload: &messaging.APNSPayload{
+				Aps: &messaging.Aps{
+					ContentAvailable: true,
+				},
+			},
+		},
+	}
+}
+
 func (f *fcmSender) buildFcmAndroidMessage(message domain.Message) *messaging.MulticastMessage {
 	var data = make(map[string]string)
 	maps.Copy(data, message.Data)
@@ -144,5 +166,12 @@ func (f *fcmSender) buildFcmAndroidMessage(message domain.Message) *messaging.Mu
 	return &messaging.MulticastMessage{
 		Tokens: message.Tokens,
 		Data:   data,
+	}
+}
+
+func (f *fcmSender) buildFcmAndroidSilentMessage(message domain.Message) *messaging.MulticastMessage {
+	return &messaging.MulticastMessage{
+		Tokens: message.Tokens,
+		Data:   message.Data,
 	}
 }

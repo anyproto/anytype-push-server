@@ -74,6 +74,18 @@ func (s *sender) Run(ctx context.Context) (err error) {
 			return
 		}
 	}
+	/*
+		sErr := s.providers[domain.PlatformIOS].SendMessage(ctx, domain.Message{
+			Tokens: []string{""},
+			Data: map[string]string{
+				"x-any-group-id": "test",
+				"x-any-type":     "silent",
+			},
+			Platform: 0,
+			Silent:   true,
+		}, s.onInvalid)
+		log.Info("sent", zap.Error(sErr))
+	*/
 	return
 }
 
@@ -99,10 +111,17 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 	}
 
 	data := make(map[string]string)
-
-	data["x-any-key-id"] = message.KeyId
-	data["x-any-payload"] = base64.StdEncoding.EncodeToString(message.Payload)
-	data["x-any-signature"] = base64.StdEncoding.EncodeToString(message.Signature)
+	if message.Silent {
+		data["x-any-type"] = "silent"
+	} else {
+		data["x-any-type"] = "normal"
+	}
+	if message.Payload != nil && message.Signature != nil {
+		data["x-any-payload"] = base64.StdEncoding.EncodeToString(message.Payload)
+		data["x-any-signature"] = base64.StdEncoding.EncodeToString(message.Signature)
+		data["x-any-key-id"] = message.KeyId
+	}
+	data["x-any-group-id"] = message.GroupId
 
 	var byProvider = make(map[domain.Platform]*domain.Message)
 
@@ -113,6 +132,7 @@ func (s *sender) SendMessage(message queue.Message) (err error) {
 				Platform: token.Platform,
 				Tokens:   []string{token.Id},
 				Data:     data,
+				Silent:   message.Silent,
 			}
 		} else {
 			msg.Tokens = append(msg.Tokens, token.Id)
