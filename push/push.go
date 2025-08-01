@@ -146,7 +146,9 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bo
 		KeyId:     req.Message.KeyId,
 		Payload:   req.Message.Payload,
 		Signature: req.Message.Signature,
+		GroupId:   req.GroupId,
 		Topics:    topics,
+		Silent:    silent,
 	}
 	if !silent {
 		message.IgnoreAccountId = accPubKey.Account()

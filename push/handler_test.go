@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/anyproto/any-sync/app"
 	"github.com/anyproto/any-sync/metric"
@@ -192,6 +193,83 @@ func TestHandler_Unsubscribe(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
 	})
+}
+
+func TestHandler_Notify(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+		rawTopic := newTopic("topicX")
+		topic := domain.NewTopic(rawTopic.SpaceKey, rawTopic.Topic)
+		req := newNotifyRequest(acc, rawTopic, []byte{1, 2, 3})
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.spaceRepo.EXPECT().ExistedSpaces(pCtx, []string{topic.SpaceKeyBase58()}).Return([]string{topic.SpaceKeyBase58()}, nil)
+		fx.queue.EXPECT().Add(pCtx, gomock.Cond[queue.Message](func(x queue.Message) bool {
+			exp := queue.Message{
+				IgnoreAccountId: acc.GetPublic().Account(),
+				KeyId:           req.Message.KeyId,
+				Payload:         req.Message.Payload,
+				Signature:       req.Message.Signature,
+				Topics:          []domain.Topic{topic},
+				GroupId:         "groupId",
+				Silent:          false,
+			}
+			x.Created = time.Time{}
+			return assert.Equal(t, exp, x)
+		})).Return(nil)
+
+		resp, err := fx.handler.Notify(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+	t.Run("success silent", func(t *testing.T) {
+		fx := newFixture(t)
+		acc := newAccount()
+		rawTopic := newTopic("topicX")
+		topic := domain.NewTopic(rawTopic.SpaceKey, rawTopic.Topic)
+		req := newNotifyRequest(acc, rawTopic, []byte{1, 2, 3})
+
+		ak, _ := acc.GetPublic().Marshall()
+		pCtx := peer.CtxWithIdentity(ctx, ak)
+
+		fx.spaceRepo.EXPECT().ExistedSpaces(pCtx, []string{topic.SpaceKeyBase58()}).Return([]string{topic.SpaceKeyBase58()}, nil)
+		fx.queue.EXPECT().Add(pCtx, gomock.Cond[queue.Message](func(x queue.Message) bool {
+			exp := queue.Message{
+				KeyId:     req.Message.KeyId,
+				Payload:   req.Message.Payload,
+				Signature: req.Message.Signature,
+				Topics:    []domain.Topic{topic},
+				GroupId:   "groupId",
+				Silent:    true,
+			}
+			x.Created = time.Time{}
+			return assert.Equal(t, exp, x)
+		})).Return(nil)
+
+		resp, err := fx.handler.NotifySilent(pCtx, req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+}
+
+func newNotifyRequest(accKey crypto.PrivKey, rawTopic *pushapi.Topic, payload []byte) *pushapi.NotifyRequest {
+	sig, _ := accKey.Sign(payload)
+	return &pushapi.NotifyRequest{
+		Topics: &pushapi.Topics{
+			Topics: []*pushapi.Topic{
+				rawTopic,
+			},
+		},
+		Message: &pushapi.Message{
+			KeyId:     "key1",
+			Payload:   payload,
+			Signature: sig,
+		},
+		GroupId: "groupId",
+	}
 }
 
 type fixture struct {
