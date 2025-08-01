@@ -27,11 +27,12 @@ func New() Queue {
 }
 
 type Message struct {
-	IgnoreAccountId string `json:"ignoreAccountId"`
-	KeyId           string
-	Payload         []byte
-	Signature       []byte
+	IgnoreAccountId string         `json:"ignoreAccountId"`
+	KeyId           string         `json:"keyId"`
+	Payload         []byte         `json:"payload"`
+	Signature       []byte         `json:"signature"`
 	Topics          []domain.Topic `json:"topics"`
+	Created         time.Time      `json:"created"`
 }
 
 type Queue interface {
@@ -74,6 +75,9 @@ func (q *queue) Run(ctx context.Context) (err error) {
 }
 
 func (q *queue) Add(ctx context.Context, msg Message) error {
+	if msg.Created.IsZero() {
+		msg.Created = time.Now()
+	}
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err

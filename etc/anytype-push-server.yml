@@ -24,6 +24,8 @@ yamux:
     - 0.0.0.0:4940
   writeTimeoutSec: 10
   dialTimeoutSec: 10
+metric:
+  addr: :8008
 network:
   networkId: N83gJpVd9MuNRZAuJLZ7LiMntTThhPc6DtzWWVjb1M3PouVU
   nodes:
