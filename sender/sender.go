@@ -46,6 +46,7 @@ type sender struct {
 	providers     map[domain.Platform]Provider
 	metrics       struct {
 		sendTokens   atomic.Uint64
+		errorTokens  atomic.Uint64
 		sendCount    atomic.Uint64
 		sendDuration *prometheus.SummaryVec
 	}
@@ -151,6 +152,7 @@ func (s *sender) removeTokensBatch() {
 			return
 		}
 		st := time.Now()
+		s.metrics.errorTokens.Add(uint64(len(tokens)))
 		if err = s.tokenRepo.RemoveTokens(ctx, tokens); err != nil {
 			log.Error("remove tokens error", zap.Error(err))
 		} else {

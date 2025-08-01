@@ -14,6 +14,15 @@ func registerMetrics(reg *prometheus.Registry, s *sender) {
 	reg.MustRegister(prometheus.NewGaugeFunc(prometheus.GaugeOpts{
 		Namespace: "push",
 		Subsystem: "sender",
+		Name:      "error_tokens",
+		Help:      "total count of errors",
+	}, func() float64 {
+		return float64(s.metrics.errorTokens.Load())
+	}))
+
+	reg.MustRegister(prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace: "push",
+		Subsystem: "sender",
 		Name:      "send_count",
 		Help:      "total count of send operations",
 	}, func() float64 {
@@ -21,7 +30,7 @@ func registerMetrics(reg *prometheus.Registry, s *sender) {
 	}))
 	s.metrics.sendDuration = prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Namespace: "push",
-		Subsystem: "snder",
+		Subsystem: "sender",
 		Name:      "duration_seconds",
 		Objectives: map[float64]float64{
 			0.5:  0.5,
