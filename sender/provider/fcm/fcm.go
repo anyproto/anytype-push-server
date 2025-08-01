@@ -150,7 +150,7 @@ func (f *fcmSender) buildFcmIosSilentMessage(message domain.Message) *messaging.
 		APNS: &messaging.APNSConfig{
 			Payload: &messaging.APNSPayload{
 				Aps: &messaging.Aps{
-					MutableContent: true,
+					ContentAvailable: true,
 				},
 			},
 		},

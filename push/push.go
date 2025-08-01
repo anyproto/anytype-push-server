@@ -3,6 +3,7 @@ package push
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/anyproto/any-sync/app"
@@ -109,14 +110,18 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bo
 	if err != nil {
 		return err
 	}
-	valid, err := accPubKey.Verify(req.Message.Payload, req.Message.Signature)
-	if err != nil {
-		return err
+	if !silent && req.Message == nil {
+		return fmt.Errorf("push: message is required")
 	}
-	if !valid {
-		return pushapi.ErrInvalidSignature
+	if req.Message != nil {
+		valid, err := accPubKey.Verify(req.Message.Payload, req.Message.Signature)
+		if err != nil {
+			return err
+		}
+		if !valid {
+			return pushapi.ErrInvalidSignature
+		}
 	}
-
 	// mak a list of unique spaceKeys
 	var spaceKeys = make([]string, 0, len(topics))
 	for _, topic := range topics {
@@ -132,6 +137,9 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bo
 	// filter by registered space keys
 	var filteredTopics = topics[:0]
 	for _, topic := range topics {
+		if silent && topic.Topic() != accPubKey.Account() {
+			continue
+		}
 		if slices.Contains(validSpaceKeys, topic.SpaceKeyBase58()) {
 			filteredTopics = append(filteredTopics, topic)
 		}
@@ -143,13 +151,17 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bo
 	}
 
 	message := queue.Message{
-		KeyId:     req.Message.KeyId,
-		Payload:   req.Message.Payload,
-		Signature: req.Message.Signature,
-		GroupId:   req.GroupId,
-		Topics:    topics,
-		Silent:    silent,
+		GroupId: req.GroupId,
+		Topics:  topics,
+		Silent:  silent,
 	}
+
+	if req.Message != nil {
+		message.KeyId = req.Message.KeyId
+		message.Payload = req.Message.Payload
+		message.Signature = req.Message.Signature
+	}
+
 	if !silent {
 		message.IgnoreAccountId = accPubKey.Account()
 	}
