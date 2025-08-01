@@ -23,6 +23,7 @@ service Push {
   rpc Unsubscribe(UnsubscribeRequest) returns (Ok);
   rpc SubscribeAll(SubscribeAllRequest) returns (Ok);
   rpc Notify(NotifyRequest) returns (Ok);
+  rpc NotifySilent(NotifyRequest) returns (Ok);
 }
 
 enum Platform {
@@ -80,6 +81,7 @@ message SubscribeAllRequest {
 message NotifyRequest {
   Topics topics = 1;
   Message message = 2;
+  string groupId = 3;
 }
 
 message Message {

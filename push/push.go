@@ -100,7 +100,7 @@ func (p *push) SubscribeAll(ctx context.Context, req *pushapi.SubscribeAllReques
 	return p.accountRepo.SetAccountTopics(ctx, accPubKey.Account(), topics)
 }
 
-func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
+func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bool) error {
 	accPubKey, err := peer.CtxPubKey(ctx)
 	if err != nil {
 		return err
@@ -143,11 +143,13 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest) error {
 	}
 
 	message := queue.Message{
-		IgnoreAccountId: accPubKey.Account(),
-		KeyId:           req.Message.KeyId,
-		Payload:         req.Message.Payload,
-		Signature:       req.Message.Signature,
-		Topics:          topics,
+		KeyId:     req.Message.KeyId,
+		Payload:   req.Message.Payload,
+		Signature: req.Message.Signature,
+		Topics:    topics,
+	}
+	if !silent {
+		message.IgnoreAccountId = accPubKey.Account()
 	}
 	return p.queue.Add(ctx, message)
 }

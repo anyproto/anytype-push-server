@@ -604,6 +604,7 @@ type NotifyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Topics        *Topics                `protobuf:"bytes,1,opt,name=topics,proto3" json:"topics,omitempty"`
 	Message       *Message               `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	GroupId       string                 `protobuf:"bytes,3,opt,name=groupId,proto3" json:"groupId,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -650,6 +651,13 @@ func (x *NotifyRequest) GetMessage() *Message {
 		return x.Message
 	}
 	return nil
+}
+
+func (x *NotifyRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
 }
 
 type Message struct {
@@ -776,10 +784,11 @@ const file_pushclient_pushapi_protos_push_proto_rawDesc = "" +
 	"\x12UnsubscribeRequest\x12)\n" +
 	"\x06topics\x18\x01 \x01(\v2\x11.pushproto.TopicsR\x06topics\"@\n" +
 	"\x13SubscribeAllRequest\x12)\n" +
-	"\x06topics\x18\x01 \x01(\v2\x11.pushproto.TopicsR\x06topics\"h\n" +
+	"\x06topics\x18\x01 \x01(\v2\x11.pushproto.TopicsR\x06topics\"\x82\x01\n" +
 	"\rNotifyRequest\x12)\n" +
 	"\x06topics\x18\x01 \x01(\v2\x11.pushproto.TopicsR\x06topics\x12,\n" +
-	"\amessage\x18\x02 \x01(\v2\x12.pushproto.MessageR\amessage\"W\n" +
+	"\amessage\x18\x02 \x01(\v2\x12.pushproto.MessageR\amessage\x12\x18\n" +
+	"\agroupId\x18\x03 \x01(\tR\agroupId\"W\n" +
 	"\aMessage\x12\x14\n" +
 	"\x05keyId\x18\x01 \x01(\tR\x05keyId\x12\x18\n" +
 	"\apayload\x18\x02 \x01(\fR\apayload\x12\x1c\n" +
@@ -795,7 +804,7 @@ const file_pushclient_pushapi_protos_push_proto_rawDesc = "" +
 	"\vErrorOffset\x10\xb0\t* \n" +
 	"\bPlatform\x12\a\n" +
 	"\x03IOS\x10\x00\x12\v\n" +
-	"\aAndroid\x10\x012\xa0\x04\n" +
+	"\aAndroid\x10\x012\xd9\x04\n" +
 	"\x04Push\x125\n" +
 	"\bSetToken\x12\x1a.pushproto.SetTokenRequest\x1a\r.pushproto.Ok\x12+\n" +
 	"\vRevokeToken\x12\r.pushproto.Ok\x1a\r.pushproto.Ok\x12;\n" +
@@ -805,7 +814,8 @@ const file_pushclient_pushapi_protos_push_proto_rawDesc = "" +
 	"\tSubscribe\x12\x1b.pushproto.SubscribeRequest\x1a\r.pushproto.Ok\x12;\n" +
 	"\vUnsubscribe\x12\x1d.pushproto.UnsubscribeRequest\x1a\r.pushproto.Ok\x12=\n" +
 	"\fSubscribeAll\x12\x1e.pushproto.SubscribeAllRequest\x1a\r.pushproto.Ok\x121\n" +
-	"\x06Notify\x12\x18.pushproto.NotifyRequest\x1a\r.pushproto.OkB\x14Z\x12pushclient/pushapib\x06proto3"
+	"\x06Notify\x12\x18.pushproto.NotifyRequest\x1a\r.pushproto.Ok\x127\n" +
+	"\fNotifySilent\x12\x18.pushproto.NotifyRequest\x1a\r.pushproto.OkB\x14Z\x12pushclient/pushapib\x06proto3"
 
 var (
 	file_pushclient_pushapi_protos_push_proto_rawDescOnce sync.Once
@@ -856,17 +866,19 @@ var file_pushclient_pushapi_protos_push_proto_depIdxs = []int32{
 	10, // 14: pushproto.Push.Unsubscribe:input_type -> pushproto.UnsubscribeRequest
 	11, // 15: pushproto.Push.SubscribeAll:input_type -> pushproto.SubscribeAllRequest
 	12, // 16: pushproto.Push.Notify:input_type -> pushproto.NotifyRequest
-	14, // 17: pushproto.Push.SetToken:output_type -> pushproto.Ok
-	14, // 18: pushproto.Push.RevokeToken:output_type -> pushproto.Ok
-	14, // 19: pushproto.Push.CreateSpace:output_type -> pushproto.Ok
-	14, // 20: pushproto.Push.RemoveSpace:output_type -> pushproto.Ok
-	8,  // 21: pushproto.Push.Subscriptions:output_type -> pushproto.SubscriptionsResponse
-	14, // 22: pushproto.Push.Subscribe:output_type -> pushproto.Ok
-	14, // 23: pushproto.Push.Unsubscribe:output_type -> pushproto.Ok
-	14, // 24: pushproto.Push.SubscribeAll:output_type -> pushproto.Ok
-	14, // 25: pushproto.Push.Notify:output_type -> pushproto.Ok
-	17, // [17:26] is the sub-list for method output_type
-	8,  // [8:17] is the sub-list for method input_type
+	12, // 17: pushproto.Push.NotifySilent:input_type -> pushproto.NotifyRequest
+	14, // 18: pushproto.Push.SetToken:output_type -> pushproto.Ok
+	14, // 19: pushproto.Push.RevokeToken:output_type -> pushproto.Ok
+	14, // 20: pushproto.Push.CreateSpace:output_type -> pushproto.Ok
+	14, // 21: pushproto.Push.RemoveSpace:output_type -> pushproto.Ok
+	8,  // 22: pushproto.Push.Subscriptions:output_type -> pushproto.SubscriptionsResponse
+	14, // 23: pushproto.Push.Subscribe:output_type -> pushproto.Ok
+	14, // 24: pushproto.Push.Unsubscribe:output_type -> pushproto.Ok
+	14, // 25: pushproto.Push.SubscribeAll:output_type -> pushproto.Ok
+	14, // 26: pushproto.Push.Notify:output_type -> pushproto.Ok
+	14, // 27: pushproto.Push.NotifySilent:output_type -> pushproto.Ok
+	18, // [18:28] is the sub-list for method output_type
+	8,  // [8:18] is the sub-list for method input_type
 	8,  // [8:8] is the sub-list for extension type_name
 	8,  // [8:8] is the sub-list for extension extendee
 	0,  // [0:8] is the sub-list for field type_name
