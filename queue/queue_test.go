@@ -19,8 +19,8 @@ var ctx = context.Background()
 func TestQueue_Consume(t *testing.T) {
 	fx := newFixture(t)
 	var toSend = []Message{
-		{Topics: []domain.Topic{"1"}, Created: time.Now().Round(time.Hour)},
-		{Topics: []domain.Topic{"2"}, Created: time.Now().Round(time.Hour)},
+		{Topics: []domain.Topic{"1"}, Created: time.Now().Round(time.Hour).UTC()},
+		{Topics: []domain.Topic{"2"}, Created: time.Now().Round(time.Hour).UTC()},
 	}
 	require.NoError(t, fx.Add(ctx, toSend[0]))
 	var msgs = make(chan Message)
