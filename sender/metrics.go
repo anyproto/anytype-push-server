@@ -38,6 +38,6 @@ func registerMetrics(reg *prometheus.Registry, s *sender) {
 			0.95: 0.0005,
 			0.99: 0.0001,
 		},
-	}, nil)
+	}, []string{"platform"})
 	reg.MustRegister(s.metrics.sendDuration)
 }
