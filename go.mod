@@ -12,7 +12,7 @@ require (
 	github.com/anyproto/anytype-push-server/pushclient v0.0.0-00010101000000-000000000000
 	github.com/cheggaaa/mb/v3 v3.0.2
 	github.com/mr-tron/base58 v1.2.0
-	github.com/prometheus/client_golang v1.22.0
+	github.com/prometheus/client_golang v1.23.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.4
@@ -91,7 +91,7 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.64.0 // indirect
+	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/quic-go/quic-go v0.53.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
