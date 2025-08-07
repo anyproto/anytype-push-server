@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.1
 
 require (
-	firebase.google.com/go/v4 v4.17.0
+	firebase.google.com/go/v4 v4.18.0
 	github.com/adjust/rmq/v5 v5.2.0
 	github.com/ahmetb/govvv v0.3.0
 	github.com/anyproto/any-sync v0.9.6
