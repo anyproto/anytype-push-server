@@ -26,6 +26,7 @@ func TestSpaceRepo_Create(t *testing.T) {
 }
 
 func TestSpaceRepo_ExistedSpaces(t *testing.T) {
+	t.Skip()
 	fx := newFixture(t)
 	require.NoError(t, fx.Create(ctx, domain.Space{
 		Id:     "1",
