@@ -8,7 +8,7 @@ require (
 	firebase.google.com/go/v4 v4.18.0
 	github.com/adjust/rmq/v5 v5.2.0
 	github.com/ahmetb/govvv v0.3.0
-	github.com/anyproto/any-sync v0.11.4
+	github.com/anyproto/any-sync v0.11.9
 	github.com/anyproto/anytype-push-server/pushclient v0.0.0-00010101000000-000000000000
 	github.com/cheggaaa/mb/v3 v3.0.2
 	github.com/mr-tron/base58 v1.2.0
@@ -40,8 +40,9 @@ require (
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.4 // indirect
+	github.com/anyproto/go-bip39 v1.0.0 // indirect
 	github.com/anyproto/go-chash v0.1.0 // indirect
-	github.com/anyproto/go-slip10 v1.0.1-0.20250818123350-f910c27dd080 // indirect
+	github.com/anyproto/go-slip10 v1.0.1 // indirect
 	github.com/anyproto/go-slip21 v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect
@@ -76,7 +77,7 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
-	github.com/libp2p/go-libp2p v0.45.0 // indirect
+	github.com/libp2p/go-libp2p v0.46.0 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
@@ -93,10 +94,9 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
-	github.com/quic-go/quic-go v0.56.0 // indirect
+	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
-	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -115,13 +115,13 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/appengine/v2 v2.0.6 // indirect
 	google.golang.org/genproto v0.0.0-20251202230838-ff82c1b0f217 // indirect
