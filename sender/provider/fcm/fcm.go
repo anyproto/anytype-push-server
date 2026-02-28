@@ -166,6 +166,9 @@ func (f *fcmSender) buildFcmAndroidMessage(message domain.Message) *messaging.Mu
 	return &messaging.MulticastMessage{
 		Tokens: message.Tokens,
 		Data:   data,
+		Android: &messaging.AndroidConfig{
+			Priority: "high",
+		},
 	}
 }
 
