@@ -50,6 +50,8 @@ github.com/alicebob/miniredis/v2 v2.30.4 h1:8S4/o1/KoUArAGbGwPxcwf0krlzceva2XVOS
 github.com/alicebob/miniredis/v2 v2.30.4/go.mod h1:b25qWj4fCEsBeAAR2mlb0ufImGC6uH3VlUfb/HS5zKg=
 github.com/anyproto/any-sync v0.11.21 h1:e4yvgdm9hzErx6k8c158CGuddi8MM6kFC6esGAiaC24=
 github.com/anyproto/any-sync v0.11.21/go.mod h1:ScX5Hz1vN66DeeSiagWdHgo7hyAspniaXEqvyjM7ud8=
+github.com/anyproto/any-sync v0.12.1 h1:F4X8s0GQ0cEl1RF/vnMh2vEKITpRt2GczMPrYFiY1A8=
+github.com/anyproto/any-sync v0.12.1/go.mod h1:ScX5Hz1vN66DeeSiagWdHgo7hyAspniaXEqvyjM7ud8=
 github.com/anyproto/go-bip39 v1.0.0 h1:T6/7WowKYDeyuX/QyXtt98ZX0XXaoOh17M/LFF2M5yk=
 github.com/anyproto/go-bip39 v1.0.0/go.mod h1:l0rcxmXRyiWAYzE1noMAc4qbeNrbhUwxM3rqSO9ILwo=
 github.com/anyproto/go-chash v0.1.0 h1:I9meTPjXFRfXZHRJzjOHC/XF7Q5vzysKkiT/grsogXY=
