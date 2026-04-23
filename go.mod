@@ -6,7 +6,7 @@ require (
 	firebase.google.com/go/v4 v4.19.0
 	github.com/adjust/rmq/v5 v5.2.0
 	github.com/ahmetb/govvv v0.3.0
-	github.com/anyproto/any-sync v0.11.21
+	github.com/anyproto/any-sync v0.12.1
 	github.com/anyproto/anytype-push-server/pushclient v0.0.0-00010101000000-000000000000
 	github.com/cheggaaa/mb/v3 v3.0.2
 	github.com/mr-tron/base58 v1.2.0
