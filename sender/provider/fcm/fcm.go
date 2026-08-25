@@ -137,6 +137,7 @@ func (f *fcmSender) buildFcmIosMessage(message domain.Message) *messaging.Multic
 			Payload: &messaging.APNSPayload{
 				Aps: &messaging.Aps{
 					MutableContent: true,
+					Sound:          "default",
 				},
 			},
 		},
