@@ -146,6 +146,7 @@ func (h *handler) Notify(ctx context.Context, req *pushapi.NotifyRequest) (resp 
 		h.p.metric.RequestLog(ctx, "push.notify",
 			metric.TotalDur(time.Since(st)),
 			zap.String("addr", peer.CtxPeerAddr(ctx)),
+			zap.Bool("includeOwnDevices", req.GetIncludeOwnDevices()),
 			zap.Error(err),
 		)
 	}()

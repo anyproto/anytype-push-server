@@ -162,7 +162,8 @@ func (p *push) Notify(ctx context.Context, req *pushapi.NotifyRequest, silent bo
 		message.Signature = req.Message.Signature
 	}
 
-	if !silent {
+	// loud pushes skip the publisher's own devices unless the caller opts in
+	if !silent && !req.IncludeOwnDevices {
 		message.IgnoreAccountId = accPubKey.Account()
 	}
 	return p.queue.Add(ctx, message)

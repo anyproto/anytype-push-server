@@ -82,6 +82,11 @@ message NotifyRequest {
   Topics topics = 1;
   Message message = 2;
   string groupId = 3;
+  // Loud path only: also deliver to the publisher account's own devices,
+  // the calling one included. The account still has to be subscribed to
+  // one of the topics. Ignored by NotifySilent, which already targets own
+  // devices.
+  bool includeOwnDevices = 4;
 }
 
 message Message {
