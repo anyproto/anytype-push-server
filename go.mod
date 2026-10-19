@@ -16,7 +16,7 @@ require (
 	go.mongodb.org/mongo-driver v1.17.10
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
-	google.golang.org/api v0.303.0
+	google.golang.org/api v0.304.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
